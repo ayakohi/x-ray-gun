@@ -26,6 +26,10 @@ const PROBE = `(() => {
       }
     }
     if (!interesting || !Object.keys(got).length) continue;
+    // The rest of the recipe: glass is blur + a see-through fill + an edge; gradient text needs its clip.
+    const bg = cs.backgroundColor; if (bg && bg !== 'rgba(0, 0, 0, 0)') got['background-color'] = bg;
+    const bw = cs.borderTopWidth; if (bw && bw !== '0px') got['border'] = bw + ' ' + cs.borderTopStyle + ' ' + cs.borderTopColor;
+    const clip = cs.webkitBackgroundClip || cs.backgroundClip; if (clip === 'text') { got['background-clip'] = 'text'; got['-webkit-text-fill-color'] = cs.webkitTextFillColor; }
     // Group by the look, not the moment: transform and opacity drift mid-animation, so they stay
     // out of the key and only the first element's values are shown.
     const look = Object.fromEntries(Object.entries(got).filter(([p]) => p !== 'transform' && p !== 'opacity'));
@@ -35,9 +39,26 @@ const PROBE = `(() => {
     seen.set(key, { count:1, sel: el.tagName.toLowerCase()+(el.id?('#'+el.id):'')+(el.className&&typeof el.className==='string'?('.'+el.className.trim().split(/\\s+/).slice(0,2).join('.')):''), size: Math.round(r.width)+'×'+Math.round(r.height), props: got });
   }
   const list = [...seen.values()].sort((a,b)=>b.count-a.count).slice(0,40);
+  // Big pictures and motion: images, videos, canvases and CSS background images covering a real
+  // share of the screen. Many hero visuals are just a file, not an effect.
+  const vw = innerWidth*innerHeight, visuals = [];
+  for (const el of document.querySelectorAll('img,video,canvas,picture,svg,div,section')) {
+    const r = el.getBoundingClientRect(); if (r.width*r.height < vw*0.08) continue;
+    const cs = getComputedStyle(el);
+    let src = null, kind = el.tagName.toLowerCase();
+    if (kind==='img') src = el.currentSrc||el.src;
+    else if (kind==='video') src = el.currentSrc||el.src||el.querySelector('source')?.src;
+    else if (kind==='canvas') src = '(drawn by script)';
+    else if (/url\\(/.test(cs.backgroundImage)) { src = cs.backgroundImage.match(/url\\("?([^")]+)/)?.[1]; kind += ' (css background)'; }
+    if (!src) continue;
+    const dup = visuals.find((v) => v.src === String(src).slice(0,200));
+    if (dup) { dup.count++; continue; }
+    visuals.push({ count: 1, kind, src: String(src).slice(0,200), size: Math.round(r.width)+'×'+Math.round(r.height), at: Math.round(r.left)+','+Math.round(r.top+scrollY), autoplay: el.autoplay||undefined, loop: el.loop||undefined });
+    if (visuals.length>=15) break;
+  }
   const fonts = [...new Set([...document.querySelectorAll('*')].slice(0,2000).map(e=>getComputedStyle(e).fontFamily).filter(Boolean))].slice(0,12);
   const counts = {}; for (const e of document.querySelectorAll('*')) counts[e.tagName]=(counts[e.tagName]||0)+1;
-  return { effects:list, fonts, canvases: document.querySelectorAll('canvas').length, svgs: document.querySelectorAll('svg').length, videos: document.querySelectorAll('video').length,
+  return { effects:list, visuals, fonts, canvases: document.querySelectorAll('canvas').length, svgs: document.querySelectorAll('svg').length, videos: document.querySelectorAll('video').length,
     tags: Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,12).map(([t,n])=>t.toLowerCase()+':'+n), title: document.title, nodes: document.querySelectorAll('*').length };
 })()`;
 
@@ -85,6 +106,7 @@ export default {
       if (probe.canvases) findings.push({ what: `${probe.canvases} <canvas> (custom drawing / WebGL likely)`, evidence: 'DOM' });
       if (probe.svgs) findings.push({ what: `${probe.svgs} <svg>`, evidence: 'DOM' });
       if (probe.fonts?.length) findings.push({ what: `fonts: ${probe.fonts.slice(0, 6).join(' · ')}`, evidence: 'computed style' });
+      for (const v of probe.visuals || []) findings.push({ what: `big visual${v.count > 1 ? ` ×${v.count}` : ''}: ${v.kind} ${v.size} at ${v.at}${v.count > 1 ? ' (first of them)' : ''}${v.autoplay ? ', autoplay' : ''}${v.loop ? ', loops' : ''} — ${v.src}`, evidence: 'DOM + layout' });
 
       // The headline: each distinct visual effect, as copy-pasteable CSS.
       const effects = (probe.effects || []).map((e) => ({
