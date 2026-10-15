@@ -26,8 +26,11 @@ const PROBE = `(() => {
       }
     }
     if (!interesting || !Object.keys(got).length) continue;
-    const key = JSON.stringify(got);
-    if (seen.has(key)) { seen.get(key).count++; continue; }
+    // Group by the look, not the moment: transform and opacity drift mid-animation, so they stay
+    // out of the key and only the first element's values are shown.
+    const look = Object.fromEntries(Object.entries(got).filter(([p]) => p !== 'transform' && p !== 'opacity'));
+    const key = el.tagName + JSON.stringify(look);
+    if (seen.has(key)) { const s = seen.get(key); s.count++; if (got.transform) s.moving = true; continue; }
     const r = el.getBoundingClientRect();
     seen.set(key, { count:1, sel: el.tagName.toLowerCase()+(el.id?('#'+el.id):'')+(el.className&&typeof el.className==='string'?('.'+el.className.trim().split(/\\s+/).slice(0,2).join('.')):''), size: Math.round(r.width)+'×'+Math.round(r.height), props: got });
   }
@@ -85,7 +88,7 @@ export default {
 
       // The headline: each distinct visual effect, as copy-pasteable CSS.
       const effects = (probe.effects || []).map((e) => ({
-        what: `effect ×${e.count} on \`${e.sel}\` (${e.size})\n` + Object.entries(e.props).map(([k, v]) => `    ${k}: ${v};`).join('\n'),
+        what: `effect ×${e.count} on \`${e.sel}\` (${e.size})${e.moving ? ' — transform/opacity vary across copies (animated?)' : ''}\n` + Object.entries(e.props).map(([k, v]) => `    ${k}: ${v};`).join('\n'),
         evidence: 'computed style',
       }));
 
