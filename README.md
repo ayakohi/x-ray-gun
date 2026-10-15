@@ -8,7 +8,7 @@ node xray.mjs adapters      # what it can open
 node xray.mjs cases         # past investigations
 ```
 
-- **`web`** — loads a page in headless Chrome/Edge and hands back its structure, scripts, network, a screenshot, and **the real CSS behind each visual effect** (that frosted-glass look, as copy-pasteable rules).
+- **`web`** — loads a page in headless Chrome/Edge and hands back its structure, scripts, network, a screenshot, **the real CSS behind each visual effect** (that frosted-glass look, as copy-pasteable rules), and **motion**: what animates on its own, follows the mouse, or changes as you scroll, with a filmstrip.
 - **`js`** — maps a JavaScript/Electron project: entry points, imports, libraries, Electron windows/IPC/preload bridges, and **recovers original source from source maps**.
 - **`asar` / `zip`** — unpack Electron apps and the whole zip family (apk, jar, msix, docx, xpi, ipa…), then scan what's inside.
 - **`pe`** — reads a Windows `.exe`/`.dll`'s headers: how it was built and from what. Header facts only; no code interpretation.

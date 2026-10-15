@@ -5,6 +5,7 @@
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { launch } from '../lib/cdp.mjs';
+import { captureMotion } from '../lib/motion.mjs';
 
 // Runs in the page. Finds elements whose computed style uses an "effect" property, and returns the
 // properties that actually make the look, deduped by the style fingerprint so 100 identical cards
@@ -96,6 +97,13 @@ export default {
         writeFileSync(shot, Buffer.from(cap.data, 'base64'));
       } catch { /* headless gpu quirk */ }
 
+      // Motion: idle, pointer, scroll. On by default; --no-motion skips it, --steps N caps the scroll.
+      let motion = { findings: [], guesses: [], unknowns: [], files: [], facts: {} };
+      if (!ctx.opts['no-motion']) {
+        try { motion = await captureMotion(page, ctx.filesDir, { steps: ctx.opts.steps }); }
+        catch (err) { motion.unknowns.push(`Motion capture failed: ${err.message}`); }
+      }
+
       const scripts = [...responses.values()].filter((r) => /javascript/.test(r.mime)).map((r) => r.url);
       const thirdParty = [...new Set(requests.map((r) => { try { return new URL(r.url).host; } catch { return null; } }).filter(Boolean))];
       writeFileSync(join(ctx.filesDir, 'network.json'), JSON.stringify([...responses.values()], null, 2));
@@ -122,13 +130,13 @@ export default {
       return {
         kind: 'web page (live)',
         summary: `${probe.title || t.url}: ${probe.nodes} nodes, ${effects.length} distinct visual effects, ${libs.join('/') || 'no known libs'}, ${thirdParty.length} hosts contacted.${shot ? ' Screenshot saved.' : ''}`,
-        facts: { nodes: probe.nodes, canvases: probe.canvases, svgs: probe.svgs, scripts: scripts.length, requests: requests.length, libraries: libs },
-        findings: [...findings, ...effects],
-        guesses,
-        unknowns: ['This is one load, one viewport (1280×900), no clicks or scrolling. State behind interaction, hover, or login was not reached. Pass actions is not built yet — drive the page yourself and re-point the gun if needed.'],
-        next: ['Open files/screenshot.png to confirm you measured the right page.', 'Copy an effect block straight into your CSS and tune the numbers.', `Read files/network.json for the scripts, then scan a downloaded bundle with the js adapter.`],
+        facts: { nodes: probe.nodes, canvases: probe.canvases, svgs: probe.svgs, scripts: scripts.length, requests: requests.length, libraries: libs, ...motion.facts },
+        findings: [...findings, ...effects, ...motion.findings],
+        guesses: [...guesses, ...motion.guesses],
+        unknowns: ['One viewport (1280×900), no clicks or login: state behind those was not reached.', ...motion.unknowns],
+        next: ['Open files/screenshot.png to confirm you measured the right page.', motion.files.length ? 'Flip through files/scroll/ in order: it is the page as a filmstrip, one frame per scroll step.' : null, 'Copy an effect block straight into your CSS and tune the numbers.', `Read files/network.json for the scripts, then scan a downloaded bundle with the js adapter.`].filter(Boolean),
         inventory: [`hosts contacted: ${thirdParty.slice(0, 20).join(', ')}`, ...scripts.slice(0, 20).map((s) => `script: ${s}`)],
-        files: [shot ? 'files/screenshot.png' : null, 'files/network.json'].filter(Boolean),
+        files: [shot ? 'files/screenshot.png' : null, 'files/network.json', ...(motion.files.length ? [`files/scroll/ (${motion.files.length} frames)`] : [])].filter(Boolean),
       };
     } finally {
       browser.close();

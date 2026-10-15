@@ -46,7 +46,7 @@ Needs only Node 18+ and, for the `web` adapter, Chrome or Edge (set `XRAY_BROWSE
 
 | You have | Adapter | It gives you |
 |---|---|---|
-| a URL | `web` | structure, scripts, libraries, network, **a screenshot, and the real CSS behind each visual effect** |
+| a URL | `web` | structure, scripts, libraries, network, **a screenshot, the real CSS behind each visual effect, the big images/videos, and motion**: what moves on its own, what follows the pointer, and what scrolling does (fades, slides, pins, parallax, scale), plus a filmstrip of one frame per scroll step |
 | a website/app's code folder, or a `.js` bundle | `js` | entry points, import map, libraries, Electron windows/IPC/preload, **recovered original source from source maps** |
 | `app.asar` (Electron) | `asar` | unpacks the app's code, then runs `js` on it |
 | `.zip .apk .jar .msix .docx .xpi .ipa .whl …` | `zip` | member list, names the flavour, extracts, then runs `folder` on it |
@@ -56,7 +56,17 @@ Needs only Node 18+ and, for the `web` adapter, Chrome or Edge (set `XRAY_BROWSE
 | a folder | `folder` | inventory by kind, the files that explain it, what to scan next |
 | anything else | `generic` | signature, entropy, strings, embedded payloads — **never just "unsupported"** |
 
-Force one with `--as <adapter>`. Useful options: `--deep` (js: include node_modules), `--rows N` (sqlite), `--no-extract` (zip), `--lines N` (how much to print).
+Force one with `--as <adapter>`. Useful options: `--deep` (js: include node_modules), `--rows N` (sqlite), `--no-extract` (zip), `--no-motion` / `--steps N` (web: skip motion capture, or cap the scroll steps; default 16), `--lines N` (how much to print).
+
+### Reading the web adapter's motion lines
+
+- **moves on its own**: changed while nobody touched the page (looping animation, autoplay, a ticker).
+- **follows the pointer**: changed while the mouse swept across the first screen (parallax, tilt, custom cursor).
+- **on scroll**: changed while the gun wheel-scrolled down like a person. `fades in`, `slides Y 50px → 0px`, `scales`, `rotates` describe the change; `pinned` means it stayed on screen while the page moved; `parallax 0.6×` means it scrolled slower than the page; `starts near scrollY N` is where it kicks in.
+- **animation "name"**: a CSS/Web Animation the browser itself reports, with its duration and easing.
+- `×N` means N copies of the same element did the same thing (letters split for animation, a grid of cards).
+
+Then open `files/scroll/` to watch it as a filmstrip and confirm.
 
 ## Add an adapter (this is the cheap part)
 
@@ -85,7 +95,7 @@ export default {
 
 - **No decompiling of machine code.** The `pe` adapter reads headers, not instructions. For a compiled program whose logic you truly need (e.g. a game), run the real REA once: `npx -y rea-agents@latest` with Ghidra. A `ghidra` adapter could be added here later.
 - **Android/iOS code is compiled.** `zip` lists an APK/IPA and extracts it, but turning it back into readable Java/Swift needs JADX or similar — not bundled.
-- **One load, one viewport.** `web` loads the page once at 1280×900 with no clicks, scroll, or login. State behind interaction isn't reached yet.
+- **One viewport, no clicks.** `web` works at 1280×900, scrolls and sweeps the mouse, but doesn't click, type, or log in. Motion is sampled per scroll step, not per frame, and hover on individual buttons isn't tested.
 - **Only examine what you own or are allowed to.** Same line REA draws. The gun is for learning and interoperability, not cracking protection or copying protected assets.
 
 ## Credit
