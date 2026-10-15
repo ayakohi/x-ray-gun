@@ -1,0 +1,6 @@
+node_modules/
+*.log
+.DS_Store
+# Case folders live in ~/.x-ray-gun by default, not here, but ignore any that land locally:
+cases/
+.x-ray-gun/
