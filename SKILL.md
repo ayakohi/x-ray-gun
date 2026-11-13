@@ -43,7 +43,9 @@ node xray.mjs scan "C:/Users/me/AppData/Local/SomeApp" --case someapp
 node xray.mjs scan ./mystery.bin
 ```
 
-It prints a trimmed report and the path to the full one. Everything lands in a **case folder** (default `~/.x-ray-gun/cases/<name>/`): a `notebook.md` and one dated sub-folder per scan holding `report.md`, `report.json`, and any files pulled out.
+It prints a trimmed report and the path to the full one. Everything lands in a **case folder** (default `~/.x-ray-gun/cases/<name>/`): a `notebook.md`, and inside `scans/` one dated folder per scan holding `report.md`, `report.json`, and any files pulled out.
+
+To go on from how it was built to why, and to a build plan of the user's own, follow [brain/BRAIN.md](brain/BRAIN.md). It works on the same case folder.
 
 Needs only Node 22.5 or newer and, for the `web` adapter, Chrome or Edge (set `XRAY_BROWSER` to override the path). Nothing to install.
 
@@ -102,11 +104,13 @@ The gun stays small on purpose. Each report's **Still unknown** list names what 
 | Which products and services a site runs on | Wappalyzer |
 
 3. **Write a one-off script only when no tool fits,** and save it in the case folder under `scripts/`. It belongs to that case.
-4. **Bring the result back into the case.** Save the outside tool's output in a new folder inside the case, named `<date>-<tool>`, and add one line for it under **Scans** in `notebook.md`. The case folder is the chain: every tool reads from it and writes to it.
+4. **Bring the result back into the case.** Save the outside tool's output in `scans/<yyyymmdd>-<hhmmss>-<tool>/` inside the case, with a short `report.md` in the gun's headings (Findings, Guesses, Still unknown), and add one line for it under **Scans** in `notebook.md`. The case folder is the chain: every tool reads from it and writes to it.
 
 ## Keeping the gun small
 
 The gun holds adapters, and an adapter opens **a kind of thing**: a file format or a type of target. A technique, a library or a single effect is knowledge for the report's reader, and it stays out of the code.
+
+`node <skill>/xray.mjs adapters` shows how many cases each adapter and each outside tool has been used in, read from the scan folders.
 
 Propose a new adapter to the user when all three hold:
 - the same kind of thing has come up in three separate cases,

@@ -78,7 +78,12 @@ const TEXT = `(() => {
     acts.set(key, (acts.get(key) || 0) + 1);
   }
   const text = document.body ? document.body.innerText : '';
-  return { heads, actions: [...acts.entries()].slice(0, 300), text: text.slice(0, 60000), cut: text.length > 60000, words: text.split(/\\s+/).filter(Boolean).length };
+  // Rows that open on a click (closed <details>) hold words the visible text leaves out.
+  const closed = [...document.querySelectorAll('details:not([open])')].slice(0, 80).map((d) => {
+    const label = clean(d.querySelector('summary') ? d.querySelector('summary').textContent : '');
+    return { label, inside: clean(d.textContent).slice(label.length).trim().slice(0, 1200) };
+  }).filter((r) => r.inside);
+  return { heads, closed, actions: [...acts.entries()].slice(0, 300), text: text.slice(0, 60000), cut: text.length > 60000, words: text.split(/\\s+/).filter(Boolean).length };
 })()`;
 
 const LIBS = [['React','window.React||document.querySelector("[data-reactroot],#__next")'],['Vue','window.Vue||document.querySelector("[data-v-app],#app[data-v-]")'],['Three.js','window.THREE'],['PixiJS','window.PIXI'],['GSAP','window.gsap'],['jQuery','window.jQuery'],['Lottie','window.lottie||window.bodymovin'],['Next.js','window.__NEXT_DATA__'],['Nuxt','window.__NUXT__']];
@@ -131,6 +136,7 @@ export default {
           `# Page text — ${probe.title || address}`, '',
           '## Headings', ...words.heads.map((h) => `- ${h}`), '',
           '## Links and buttons', ...words.actions.map(([k, n]) => `- ${k}${n > 1 ? `  ×${n}` : ''}`), '',
+          ...(words.closed.length ? ['## Behind a closed row (shown after a click)', ...words.closed.map((r) => `- ${r.label} → ${r.inside}`), ''] : []),
           `## Visible text${words.cut ? ' (first 60,000 characters)' : ''}`, '', words.text,
         ].join('\n'));
       } catch { words = null; }
@@ -142,7 +148,7 @@ export default {
       const findings = [];
       findings.push({ what: `"${probe.title || '(no title)'}", ${probe.nodes} DOM nodes`, evidence: address });
       if (words) {
-        findings.push({ what: `the page's words saved: ${words.words} words, ${words.heads.length} headings, ${words.actions.length} distinct links and buttons`, evidence: 'files/text.md' });
+        findings.push({ what: `the page's words saved: ${words.words} words, ${words.heads.length} headings, ${words.actions.length} distinct links and buttons${words.closed.length ? `, ${words.closed.length} closed rows with their hidden text` : ''}`, evidence: 'files/text.md' });
       }
       if (libs.length) findings.push({ what: `libraries live in the page: ${libs.join(', ')}`, evidence: 'window globals' });
       if (probe.canvases) findings.push({ what: `${probe.canvases} <canvas> (custom drawing / WebGL likely)`, evidence: 'DOM' });

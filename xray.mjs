@@ -14,7 +14,7 @@ import { readdirSync, statSync, existsSync, writeFileSync } from 'node:fs';
 import { join, resolve, extname, basename } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { readHead, identify, sha256File, human } from './lib/bytes.mjs';
-import { openCase, newScan, listCases, renderMarkdown, addQuestion, logScan, CASES_ROOT } from './lib/case.mjs';
+import { openCase, newScan, listCases, usage, renderMarkdown, addQuestion, logScan, CASES_ROOT } from './lib/case.mjs';
 
 const HERE = fileURLToPath(new URL('.', import.meta.url));
 
@@ -99,7 +99,15 @@ async function main() {
   const adapters = await loadAdapters();
 
   if (cmd === 'adapters') {
-    for (const a of adapters) console.log(`${a.name.padEnd(9)} ${a.about}`);
+    // Use is read from the case folders, so the list shows which adapters have earned their place.
+    const used = usage();
+    const day = (d) => `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`;
+    for (const a of adapters) {
+      const u = used[a.name];
+      console.log(`${a.name.padEnd(9)} ${a.about}\n${' '.repeat(10)}${u ? `used in ${u.cases.size} case${u.cases.size > 1 ? 's' : ''}, ${u.scans} scan${u.scans > 1 ? 's' : ''}, last ${day(u.last)}` : 'not used in any case yet'}`);
+    }
+    const guests = Object.entries(used).filter(([n]) => !adapters.some((a) => a.name === n));
+    for (const [n, u] of guests) console.log(`${n.padEnd(9)} outside tool, results saved in ${u.cases.size} case${u.cases.size > 1 ? 's' : ''}, last ${day(u.last)}`);
     for (const u of unloaded) console.log(`(could not load) ${u}`);
     return;
   }
