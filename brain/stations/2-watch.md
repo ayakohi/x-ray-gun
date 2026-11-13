@@ -16,7 +16,9 @@ Write one file: {case}/2-behaviour.md, with four lists. Use plain words and shor
 
 When something seems to be missing, look at **Out of reach** in 1-survey.md. A thing the materials could not open is unknown, and you tag it so. eg. "What the menu holds once it is opened. [Unknown: a browser someone can click through]"
 
-**New names** — one line for each part the glossary lacks that you mention more than once, in the glossary's form. eg. "- **the hours strip** — the thin bar of opening times under the menu. [Seen: frame 3]"
+**Where the survey looks wrong** — the survey is a first impression. Write one line for each thing in it that what you saw corrects. Write "nothing to correct" when it holds. eg. "The survey calls this an ordering site; half of it is a catering enquiry form. [Seen: frames 6 to 9]"
+
+**New names** — one line for each part the glossary lacks that you mention more than once, in the glossary's form. eg. "- **the hours strip** — the thin bar of opening times under the menu. [Seen: frame 3]" When a glossary name describes a part wrongly, give the part a better name here and add the old one in brackets. eg. "- **the enquiry form** (was: the order box) — it asks for a date and a headcount. [Seen: frame 7]"
 
 End every line with a grip tag in square brackets: [Seen: where] when you can point at it, [Thin] for a hunch, [Unknown: what would reach it] when it is out of reach.
 

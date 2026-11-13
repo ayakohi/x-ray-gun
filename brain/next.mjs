@@ -17,11 +17,13 @@ const CASES_ROOT = process.env.XRAY_CASES || join(homedir(), '.x-ray-gun', 'case
 
 // The sequence. A step is done when its output files exist, and ready when the files it needs exist.
 const STEPS = [
+  // Only Brief reads the frame. Every step before it works without knowing what the person hopes to find.
   { name: 'Survey', station: '1-survey.md', out: ['1-survey.md', 'glossary.md'], needs: ['0-frame.md'] },
   { name: 'Watch', station: '2-watch.md', out: ['2-behaviour.md'], needs: ['1-survey.md', 'glossary.md'] },
   { name: 'Open', station: '3-open.md', out: ['3-build.md'], needs: ['1-survey.md', 'glossary.md'] },
-  { name: 'Decide', station: '4-decide.md', out: ['4-read.md', '5-rules.md'], needs: ['2-behaviour.md', '3-build.md'] },
-  { name: 'Brief', station: '5-brief.md', out: ['6-brief.md'], needs: ['5-rules.md'], alone: true },
+  { name: 'Decide', station: '4-decide.md', out: ['4-read.md'], needs: ['2-behaviour.md', '3-build.md'] },
+  { name: 'Challenge', station: '5-challenge.md', out: ['5-challenge.md', '6-rules.md'], needs: ['4-read.md'], alone: 'It tests the read, so it needs a reader who did not write it.' },
+  { name: 'Brief', station: '6-brief.md', out: ['7-brief.md'], needs: ['6-rules.md'], alone: 'It works from two files alone, and a reader who has seen the earlier notes will carry them in.' },
 ];
 
 function args(argv) {
@@ -80,7 +82,7 @@ function mergeNames(dir) {
 
 // The rules file is the wall between the study and the rebuild: it carries words, never exact values.
 function valuesIn(dir) {
-  const p = join(dir, '5-rules.md');
+  const p = join(dir, '6-rules.md');
   if (!existsSync(p)) return [];
   return readFileSync(p, 'utf8').split('\n').map((l, i) => [i + 1, l]).filter(([, l]) => /\d+(\.\d+)?\s?(px|rem|em|ms|%)|\brgba?\(|#[0-9a-f]{6}\b/i.test(l)).map(([n]) => n);
 }
@@ -125,17 +127,17 @@ function main() {
   const bad = valuesIn(dir);
   const ready = STEPS.filter((s) => !s.out.every(has) && s.needs.every(has));
 
-  if (bad.length && !has('6-brief.md')) {
+  if (bad.length && !has('7-brief.md')) {
     head('Clean the rules file');
-    L.push('## Now', '', `5-rules.md carries exact values on line${bad.length > 1 ? 's' : ''} ${bad.join(', ')}. Rewrite ${bad.length > 1 ? 'those lines' : 'that line'} in plain words (a soft blur, one bright colour, a short rise), then run this again.`, '', '## Then', '', '```', self, '```');
+    L.push('## Now', '', `6-rules.md carries exact values on line${bad.length > 1 ? 's' : ''} ${bad.join(', ')}. Rewrite ${bad.length > 1 ? 'those lines' : 'that line'} in plain words (a soft blur, one bright colour, a short rise), then run this again.`, '', '## Then', '', '```', self, '```');
     return finish(dir, L);
   }
 
   if (!ready.length) {
     head('Done');
-    L.push('## The read is complete', '', 'Read in this order: 0-frame.md, 1-survey.md, 4-read.md, 5-rules.md, 6-brief.md.', '',
-      '**To rebuild:** open 6-brief.md from inside your own project folder and follow its build order. Build there, and keep this folder as the study.', '',
-      '**To go deeper on one part:** the "Out of reach" lists in 1-survey.md and 3-build.md, and each "Check next" line in 4-read.md, name the tool that would show it. Save what that tool gives you in `scans/<date>-<tool>/`, add its findings to 2-behaviour.md or 3-build.md, move 4-read.md, 5-rules.md and 6-brief.md into a folder named `earlier/`, and run this again for a new Decide.');
+    L.push('## The read is complete', '', 'Read in this order: 0-frame.md, 1-survey.md, 4-read.md, 5-challenge.md, 6-rules.md, 7-brief.md.', '',
+      '**To rebuild:** open 7-brief.md from inside your own project folder and follow its build order. Build there, and keep this folder as the study.', '',
+      '**To go deeper on one part:** the "Out of reach" lists in 1-survey.md and 3-build.md, and each "Check next" line in 4-read.md, name the tool that would show it. Save what that tool gives you in `scans/<date>-<tool>/`, add its findings to 2-behaviour.md or 3-build.md, move 4-read.md, 5-challenge.md, 6-rules.md and 7-brief.md into a folder named `earlier/`, and run this again for a new Decide.');
     return finish(dir, L);
   }
 
@@ -144,7 +146,7 @@ function main() {
   for (const s of ready) {
     const prompt = readFileSync(join(HERE, 'stations', s.station), 'utf8').trim().replaceAll('{case}', dir).replace('{materials}', surveyMaterials(list));
     L.push(`## Now: ${s.name}`, '');
-    if (s.alone) L.push('Do this step in a fresh conversation, or hand it to a helper. It works from two files alone, and a reader who has seen the earlier notes will carry them in.', '');
+    if (s.alone) L.push(`Do this step in a fresh conversation, or hand it to a helper. ${s.alone}`, '');
     L.push('Follow these instructions exactly:', '', '---', '', prompt, '', '---', '');
   }
   L.push('## Then', '', 'When the step\'s files are saved, run this to get the next step:', '', '```', self, '```');

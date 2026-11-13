@@ -22,13 +22,21 @@ That writes `NEXT.md` in the case folder. From then on the whole method is one l
 |---|---|---|
 | Frame | the person's two answers | `0-frame.md` |
 | Scan | the target, with the gun or an outside tool | `scans/<date>-<tool>/` |
-| Survey | the frame and the scans | `1-survey.md`, `glossary.md` |
+| Survey | the scans, and nothing about what the person hopes to find | `1-survey.md`, `glossary.md` |
 | Watch | the survey's Watch list | `2-behaviour.md` |
 | Open | the survey's Open list | `3-build.md` |
-| Decide | the survey and both sets of notes | `4-read.md`, `5-rules.md` |
-| Brief | the frame and the rules, nothing else | `6-brief.md` |
+| Decide | the survey and both sets of notes | `4-read.md` |
+| Challenge | both sets of notes and the read, with fresh eyes | `5-challenge.md`, `6-rules.md` |
+| Brief | the frame and the rules, nothing else | `7-brief.md` |
 
-Watch and Open can run at the same time. Brief runs in a fresh conversation or with a helper.
+Watch and Open can run at the same time. Challenge and Brief each run in a fresh conversation or with a helper.
+
+## How it stays honest
+
+- **The question waits.** The person's question and destination sit in `0-frame.md`, and only Brief opens it. Every step before that studies the thing without knowing what anyone hopes to find.
+- **The survey is a first impression.** Watch and Open correct it where what they see differs, and rename any part it named wrongly. The old name stays in the glossary beside the new one.
+- **Every decision keeps its rivals.** Decide writes two or more explanations for each feature, with what supports each and what counts against it. "The notes cannot settle this" is a full answer.
+- **A second reader tries to break the read.** Challenge argues against each conclusion, checks it against the notes, and writes rules only from what survives.
 
 ## The case folder
 
@@ -40,9 +48,10 @@ Watch and Open can run at the same time. Brief runs in a fresh conversation or w
   glossary.md    this case's names for its parts
   2-behaviour.md what it does
   3-build.md     what it is made of
-  4-read.md      intent, decisions, the maker
-  5-rules.md     the maker's rules, in words only
-  6-brief.md     the basket and the build order
+  4-read.md      where it steers, features with rival explanations, the maker
+  5-challenge.md each conclusion tested: stands, weakened, or cannot tell
+  6-rules.md     the rules that survived, in words only
+  7-brief.md     the basket and the build order
   notebook.md    the gun's log of scans
   scans/         one folder per scan, from the gun or an outside tool
   scripts/       one-off scripts written for this case
@@ -53,7 +62,7 @@ Every file has one writer and one job. Keep new material inside `scans/` or `scr
 ## Ways to run it
 
 - **Helpers.** Hand each helper one line: "Open `<case>/NEXT.md` and do the step under Now, then run the command under Then." One helper per step.
-- **One reader.** Follow the loop yourself through Decide. Start Brief in a fresh conversation with the same one line.
+- **One reader.** Follow the loop yourself through Decide. Start Challenge in a fresh conversation with the same one line, and Brief in another.
 - **Across days.** Stop anywhere. The next reader runs `next.mjs <case>` and continues.
 
 Each station's instructions live in `stations/`, one file per step.

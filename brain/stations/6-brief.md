@@ -2,9 +2,9 @@ You turn one maker's rules into a build plan for a different person, who is buil
 
 Read these two in one step. They are your only materials:
 - {case}/0-frame.md — the person's question and what they are building.
-- {case}/5-rules.md — the rules another maker followed on a thing of their own, why each worked, and what each depended on.
+- {case}/6-rules.md — the rules another maker followed on a thing of their own, why each worked, and what each depended on.
 
-Write one file: {case}/6-brief.md, with three parts. Use plain words and short sentences. Write to the person as "you".
+Write one file: {case}/7-brief.md, with three parts. Use plain words and short sentences. Write to the person as "you".
 
 **The basket** — sort every rule for the person's destination. Ask of each: "do they have what this depended on?"
 - **Carry** — the choice holds for them as it is. Restate it as their choice.

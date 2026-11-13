@@ -16,9 +16,11 @@ flowchart TD
     C --> S["1 · Survey: what kind of thing, what shape"]
     S --> W["2 · Watch: what it does"]
     S --> O["3 · Open: what it is made of"]
-    W --> D["4 · Decide: why the maker did it"]
+    W --> D["4 · Decide: rival explanations for each feature"]
     O --> D
-    D -- "rules, in words only" --> B["5 · Brief: a build order for your own thing"]
+    D --> H["5 · Challenge: a fresh reader tries to break them"]
+    H -- "what survived, as rules in words only" --> B["6 · Brief: a build order for your own thing"]
+    Q(["Your question and what you are building"]) -.-> B
     B --> Y(["You build yours"])
 ```
 
@@ -30,6 +32,18 @@ There are two parts, and they stay apart on purpose.
 | **The brain** | Reads. Works out the maker's decisions and turns them into your build plan. | `brain/` |
 
 The last step, Brief, sees only the maker's rules written in plain words. It never sees their colours, sizes or code. That wall is what keeps your build yours.
+
+## How it stays honest
+
+A reader who knows the answer it is hoped to find will find it. So the method keeps the answer away from the investigation.
+
+| Guard | What it does |
+|---|---|
+| **The question waits** | Your question and what you are building are saved at the start, and only the last step opens them. Every step before that studies the thing without knowing what you hope to find. |
+| **The first look can be wrong** | Survey is a first impression. Watch and Open correct it where what they see differs, and can rename a part it named wrongly. The old name stays on record beside the new one. |
+| **Every explanation keeps its rivals** | Decide writes two or more explanations for each feature, with what supports each and what counts against it. It can also say a feature was nobody's decision: a default, a leftover, or something that grew over time. |
+| **"Cannot tell" is an answer** | When the evidence does not settle a question, the read says so and names what would settle it. |
+| **A second reader attacks the read** | Challenge starts fresh, argues against each conclusion, checks it against the notes, and marks it stands, weakened or cannot tell. Rules are written only from what survives. |
 
 ## Set it up
 
@@ -47,13 +61,14 @@ Every study is one **case folder**. Each step reads a few files from it and writ
 
 | Step | What happens | Writes |
 |---|---|---|
-| Frame | You say what you want to learn and what you are building | `0-frame.md` |
+| Frame | You say what you want to learn and what you are building. It is set aside until the last step. | `0-frame.md` |
 | Scan | The gun opens the thing | `scans/` |
-| 1 · Survey | Names the kind of thing, walks its shape, plans who reads what | `1-survey.md`, `glossary.md` |
+| 1 · Survey | A first look: the kind of thing, its shape, and who reads what | `1-survey.md`, `glossary.md` |
 | 2 · Watch | Writes down what the thing does when someone uses it | `2-behaviour.md` |
 | 3 · Open | Writes down what the thing is made of, with exact values | `3-build.md` |
-| 4 · Decide | Works out the maker's intent, five key decisions, and their rules | `4-read.md`, `5-rules.md` |
-| 5 · Brief | Sorts the rules for your project and writes your build order | `6-brief.md` |
+| 4 · Decide | Picks the five features that shaped it most and weighs rival explanations for each | `4-read.md` |
+| 5 · Challenge | A fresh reader tries to prove each conclusion wrong, then writes the rules that survive | `5-challenge.md`, `6-rules.md` |
+| 6 · Brief | Opens your frame, sorts the rules for your project, writes your build order | `7-brief.md` |
 
 One small script keeps the place. It looks at the folder and writes `NEXT.md`: what is done, and the full instructions for the step to do now.
 
@@ -73,9 +88,10 @@ After that the whole method is a loop: open `NEXT.md`, do the step, run the comm
   glossary.md      this case's names for its parts
   2-behaviour.md   what it does
   3-build.md       what it is made of
-  4-read.md        intent, decisions, the maker
-  5-rules.md       the maker's rules, in words only
-  6-brief.md       your basket and build order
+  4-read.md        the key features, each with rival explanations
+  5-challenge.md   each conclusion tested: stands, weakened, cannot tell
+  6-rules.md       the rules that survived, in words only
+  7-brief.md       your basket and build order
   notebook.md      the gun's log of scans
   scans/           one folder per scan
 ```
@@ -100,11 +116,11 @@ Why a maker did something is never **Seen** unless the maker said so themselves.
 
 | Way | How | Cost in one test run |
 |---|---|---|
-| **One reader** | One agent does Survey through Decide, then Brief starts in a fresh conversation | about 145,000 tokens |
-| **Relay** | A fresh helper for each step; Watch and Open can run together | about 292,000 tokens |
+| **One reader** | One agent does Survey through Decide; Challenge and Brief each start in a fresh conversation | about 145,000 tokens, plus Challenge |
+| **Relay** | A fresh helper for each step; Watch and Open can run together | about 292,000 tokens, plus Challenge |
 | **Across days** | Stop anywhere. The next reader runs `next.mjs <case>` and carries on | not measured |
 
-Both measured runs were on Claude Haiku, so a small plan can use the first way. Each helper needs only one line: "Open `<case>/NEXT.md` and do the step under Now, then run the command under Then."
+Both measured runs were on Claude Haiku, before the Challenge step existed; it adds one more helper. A small plan can use the first way. Each helper needs only one line: "Open `<case>/NEXT.md` and do the step under Now, then run the command under Then."
 
 ## What the gun can open
 
@@ -142,7 +158,9 @@ The gun stays small on purpose. A new adapter is added only after the same kind 
 
 ## What has been tested
 
-- The full sequence ran end to end twice on one web page, on Claude Haiku, with every reader given a single line.
+- The sequence ran end to end twice on one web page, on Claude Haiku, with every reader given a single line. That was before the honesty guards were added.
+- The guarded Decide, Challenge and Brief steps then ran once on the same notes. Challenge weakened two conclusions, marked three "cannot tell", and found seven claims with no evidence under them.
+- The guarded Survey, Watch and Open steps have not been run yet.
 - The web, code-folder, folder, database and zip adapters each pass a small check. The Electron, Windows-program, network-capture and fallback adapters have not been rechecked since they were first built. In real studies so far, only the web adapter has been used.
 - Not tested yet: a study paused for days, a target that is not a web page, and a comparison of build plans against what a person would write.
 

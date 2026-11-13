@@ -14,7 +14,9 @@ Write one file: {case}/3-build.md, with four lists. Use plain words and short se
 
 **Out of reach** — everything these materials say they could not see or test, and the tool that would reach it. eg. "Nothing was clicked, so menus were never opened. [Unknown: a browser someone can click through]"
 
-**New names** — one line for each part the glossary lacks that you mention more than once, in the glossary's form. eg. "- **the hours strip** — the thin bar of opening times under the menu. [Seen: report line 12]"
+**Where the survey looks wrong** — the survey is a first impression. Write one line for each thing in it that what you opened corrects. Write "nothing to correct" when it holds. eg. "The survey says the menu is typed text; it is one picture. [Seen: report line 21]"
+
+**New names** — when a glossary name describes a part wrongly, give the part a better name here and add the old one in brackets, eg. "- **the menu picture** (was: the menu list) — one image, no text. [Seen: report line 21]". Also write one line for each part the glossary lacks that you mention more than once, in the glossary's form. eg. "- **the hours strip** — the thin bar of opening times under the menu. [Seen: report line 12]"
 
 End every line with a grip tag in square brackets: [Seen: where] when the materials state it, [Strong] when two or more separate lines agree on something they do not state outright, [Thin] for a hunch, [Unknown: what would reach it] when it is out of reach.
 
