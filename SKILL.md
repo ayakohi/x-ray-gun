@@ -1,13 +1,30 @@
 ---
 name: x-ray-gun
-description: Take apart something that already exists — a website, an app, a file, a folder, a database — to learn how a feature or a look was built, then rebuild it yourself. Load when the user wants to understand how some app or site does a thing (a visual effect, an interaction, a data format), inspect or identify an unknown file, pull apart an Electron/web/desktop app, read an app's database, or reverse-engineer anything they own or are allowed to examine. Point it at a file, folder, or URL.
+description: Study something that already exists — a website, an app, a repo, a file, a folder, a database — in a fixed sequence of steps that ends in a build plan for the user's own thing. Load when the user wants to understand how or why some app, site or repo was built, learn from it, test or try x-ray-gun on a target, inspect or identify an unknown file, pull apart an Electron/web/desktop app, read an app's database, or reverse-engineer anything they own or are allowed to examine. Start with brain/next.mjs; a scan alone is only step one.
 ---
 
 # x-ray-gun
 
-A small kit for looking inside something that exists so you can rebuild it. You run one command, it works out what the thing is, opens it with the adapter that knows that kind, and writes a report into a case folder. It is the compact, Windows-first cousin of REA (github.com/morluto/rea) — same method, a handful of tools instead of a hundred, no install.
+A method for studying something that exists so the user can build their own. It has two parts. **The gun** (`xray.mjs`) opens the thing and writes down what is there. **The brain** (`brain/`) is the sequence of steps that turns that into why it was built that way and a build plan. It is the compact, Windows-first cousin of REA (github.com/morluto/rea), with nothing to install.
 
-**Use it when** a question depends on a shipped thing: "how does this site make that frosted glass?", "what's in this app?", "what is this file?", "what does this app store in its database?". **Skip it** for ordinary source code you already have — just read that.
+## Start here
+
+**This has multiple steps. Complete it.**
+
+Every request to use, test or try x-ray-gun on a target is a **study**, and a study runs the whole sequence. Do these three things in order:
+
+1. **Ask the user two questions** when their message leaves either one open: "What do you want to learn from this?" and "What are you building yourself?" Write "general study" as the destination when they are building nothing.
+2. **Start the sequence:**
+   ```
+   node <skill>/brain/next.mjs <case name> --target <file|folder|url> --question "<their first answer>" --destination "<their second answer>"
+   ```
+3. **Follow the loop.** Open `NEXT.md` in the case folder, do the step under **Now**, run the command under **Then**, and repeat until `NEXT.md` says **Done**. The first step it gives you is the scan. [brain/BRAIN.md](brain/BRAIN.md) explains the sequence.
+
+Tell the user the rough cost before you begin: a full study is several steps and, in tests, 150,000 to 350,000 tokens on a small model.
+
+**A scan alone** fits one case only: the user asks a single fact about a thing, such as "what is this file?" or "which fonts does this page use?". Run the scan, answer, and offer the full study.
+
+**Skip x-ray-gun** for ordinary source code the user is working in. Read that directly.
 
 ## Where it fits
 
@@ -27,7 +44,7 @@ When the gun stops, follow **When the gun runs out** below.
 
 See how something was made → study the evidence → build your own version. Observe, don't pirate: the output is understanding, not a copy.
 
-## Run it
+## The gun's commands
 
 ```
 node <skill>/xray.mjs scan <file | folder | url> [--case <name>] [--as <adapter>] [--question "<what you want to learn>"]
@@ -45,11 +62,9 @@ node xray.mjs scan ./mystery.bin
 
 It prints a trimmed report and the path to the full one. Everything lands in a **case folder** (default `~/.x-ray-gun/cases/<name>/`): a `notebook.md`, and inside `scans/` one dated folder per scan holding `report.md`, `report.json`, and any files pulled out.
 
-To go on from how it was built to why, and to a build plan of the user's own, follow [brain/BRAIN.md](brain/BRAIN.md). It works on the same case folder.
-
 Needs only Node 22.5 or newer and, for the `web` adapter, Chrome or Edge (set `XRAY_BROWSER` to override the path). Nothing to install.
 
-## The method (do this, in order)
+## Reading a scan report (do this, in order)
 
 1. **Name the thing first.** File, folder, or URL? The gun auto-routes, but know what you handed it. One `scan` is one look at one thing.
 2. **Read the summary, then drill.** Each report leads with a summary and a `Next shots` list. Follow a shot only when a real question is still open — don't scan everything because you can.

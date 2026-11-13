@@ -119,6 +119,8 @@ export default {
     else if (sm.maps) guesses.push(`${sm.maps} source maps exist but carry no embedded sources; the original files may be fetchable from the URLs inside them.`);
 
     if (minified) guesses.push(`${minified} files look minified: names are shortened, so follow strings (UI text, CSS class names, IPC channels, URLs), not variable names.`);
+    // Minified code renames ipcMain, BrowserWindow and friends, so a count of zero found by name is no evidence of none.
+    if (minified && (!channels.size || !windows.length || !bridges.length)) unknowns.push(`Windows, IPC channels and preload bridges are found by their usual names (ipcMain, BrowserWindow, contextBridge). ${minified} files are minified and may have renamed them, so the counts here (${channels.size} channels, ${windows.length} windows, ${bridges.length} bridges) are a floor. Search the extracted files for ".handle(" and "webPreferences" to find the rest.`);
     if (partial) unknowns.push(`${partial} files are over ${human(PER_FILE)}; only their first part was scanned.`);
     if (skipped.node_modules) unknowns.push(`node_modules skipped (${modulesInstalled.length} packages installed). Re-run with --deep to include it.`);
     unknowns.push('This is a read of the text only. Which code actually runs, and with what values, needs the app running. The web adapter can run a page from an address or an .html file; a running Electron window is out of its reach for now.');

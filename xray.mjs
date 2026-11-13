@@ -134,6 +134,8 @@ async function main() {
   console.log(md.slice(0, LIMIT).join('\n'));
   if (md.length > LIMIT) console.log(`\n… ${md.length - LIMIT} more lines in the report.`);
   console.log(`\nreport:   ${join(r.scanDir, 'report.md')}\nnotebook: ${join(caseDir, 'notebook.md')}`);
+  // A scan is step one of a study. Point at the step after it, where a reader would otherwise stop.
+  console.log(`\nThis scan is step one of a study. For the next step, run:\n  node "${join(HERE, 'brain', 'next.mjs')}" "${caseDir}"`);
 }
 
 main().catch((e) => { console.error(`x-ray-gun: ${e.message}`); process.exit(1); });
