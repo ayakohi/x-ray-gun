@@ -25,10 +25,21 @@ export function walk(root, { skip = ['node_modules', '.git'], limit = 50000 } = 
   return { files: out, skipped, truncated: out.length >= limit };
 }
 
+// Source files by language, so a folder of loose code is named as code.
+const LANGS = {
+  '.js': 'JavaScript', '.mjs': 'JavaScript', '.cjs': 'JavaScript', '.jsx': 'JavaScript', '.ts': 'TypeScript', '.tsx': 'TypeScript',
+  '.py': 'Python', '.go': 'Go', '.rs': 'Rust', '.java': 'Java', '.kt': 'Kotlin', '.cs': 'C#', '.swift': 'Swift',
+  '.c': 'C / C++', '.h': 'C / C++', '.cpp': 'C / C++', '.rb': 'Ruby', '.php': 'PHP',
+};
+
 // Files that usually explain a folder, in the order to look at them.
 const TELLS = [
+  [/(^|[\\/])readme(\.(md|txt|rst))?$/i, "README, the maker's own description", null],
   [/(^|[\\/])app\.asar$/i, 'Electron app archive', 'asar'],
   [/(^|[\\/])package\.json$/i, 'Node / JavaScript project manifest', 'js'],
+  [/(^|[\\/])(pyproject\.toml|requirements\.txt)$/i, 'Python project manifest', null],
+  [/(^|[\\/])Cargo\.toml$/i, 'Rust project manifest', null],
+  [/(^|[\\/])go\.mod$/i, 'Go project manifest', null],
   [/\.exe$|\.dll$/i, 'Windows program or library', null],
   [/(^|[\\/])AndroidManifest\.xml$/i, 'Android app manifest', null],
   [/(^|[\\/])AppxManifest\.xml$/i, 'Windows Store app manifest', null],
@@ -55,9 +66,16 @@ export default {
       const hits = files.filter((f) => re.test(f.rel)).sort((a, b) => a.rel.length - b.rel.length).slice(0, 3);
       for (const h of hits) {
         findings.push({ what: `${what}`, evidence: h.rel });
-        if (adapter) next.push(`${XRAY} scan "${h.path}"${adapter === 'web' ? ' --as web' : ''}`);
+        if (adapter) next.push(`${XRAY} scan "${h.path}"`);
+        else if (/^README/.test(what)) next.push(`Read ${h.path} first: it is the maker saying what this is.`);
       }
     }
+    const langs = {};
+    for (const f of files) if (LANGS[f.ext]) langs[LANGS[f.ext]] = (langs[LANGS[f.ext]] || 0) + 1;
+    const langList = Object.entries(langs).sort((a, b) => b[1] - a[1]);
+    if (langList.length) findings.push({ what: `source code: ${langList.map(([l, n]) => `${n} ${l}`).join(', ')} files`, evidence: 'file extensions' });
+    const scripty = (langs.JavaScript || 0) + (langs.TypeScript || 0);
+    if (scripty >= 3 && !files.some((f) => /(^|[\\/])package\.json$/i.test(f.rel))) next.push(`${XRAY} scan "${t.path}" --as js   (loose JavaScript with no package.json: map its imports and entry points)`);
     const biggest = [...files].sort((a, b) => b.size - a.size).slice(0, 10);
     for (const b of biggest.slice(0, 5)) {
       if (b.size > 1024 * 1024) findings.push({ what: `large file (${human(b.size)}, ${identify(readHead(b.path, 600))})`, evidence: b.rel });
@@ -68,7 +86,7 @@ export default {
       summary: `${files.length}${truncated ? '+' : ''} files, ${human(total)}. Biggest kinds: ${kinds.slice(0, 4).join('; ')}.`,
       facts: { files: files.length, total: human(total), skippedFolders: skipped },
       findings,
-      guesses: findings.length ? [] : ['Nothing in here announces what it is. Scan the largest files one by one.'],
+      guesses: findings.length ? [] : ['No README, manifest or source code was found among the names this adapter knows. The folder may still explain itself another way: scan the largest files one by one.'],
       unknowns: Object.keys(skipped).length ? [`Skipped folders: ${Object.keys(skipped).join(', ')} (pass a path inside one to scan it).`] : [],
       next: [...new Set(next)].slice(0, 8),
       inventory: kinds,

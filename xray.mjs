@@ -14,16 +14,20 @@ import { readdirSync, statSync, existsSync, writeFileSync } from 'node:fs';
 import { join, resolve, extname, basename } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { readHead, identify, sha256File, human } from './lib/bytes.mjs';
-import { openCase, newScan, listCases, renderMarkdown, CASES_ROOT } from './lib/case.mjs';
+import { openCase, newScan, listCases, renderMarkdown, addQuestion, logScan, CASES_ROOT } from './lib/case.mjs';
 
 const HERE = fileURLToPath(new URL('.', import.meta.url));
 
+// One adapter that cannot load (an older Node, a broken file) is reported and skipped, so the rest still work.
+const unloaded = [];
 async function loadAdapters() {
   const dir = join(HERE, 'adapters');
   const list = [];
   for (const f of readdirSync(dir).filter((f) => f.endsWith('.mjs')).sort()) {
-    const mod = (await import(pathToFileURL(join(dir, f)).href)).default;
-    if (mod?.name && mod.detect && mod.run) list.push(mod);
+    try {
+      const mod = (await import(pathToFileURL(join(dir, f)).href)).default;
+      if (mod?.name && mod.detect && mod.run) list.push(mod);
+    } catch (err) { unloaded.push(`${f}: ${err.message}`); }
   }
   return list;
 }
@@ -38,13 +42,16 @@ export function describe(input) {
   return { input, kind: 'file', path, ext: extname(path).toLowerCase(), size: st.size, head, sig: identify(head) };
 }
 
+// Switches that never take a value, so `scan --no-motion <target>` keeps its target.
+const SWITCHES = new Set(['deep', 'no-extract', 'no-motion']);
+
 function parseArgs(argv) {
   const pos = [], opts = {};
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a.startsWith('--')) {
       const k = a.slice(2), v = argv[i + 1];
-      if (v === undefined || v.startsWith('--')) opts[k] = true; else { opts[k] = v; i++; }
+      if (SWITCHES.has(k) || v === undefined || v.startsWith('--')) opts[k] = true; else { opts[k] = v; i++; }
     } else pos.push(a);
   }
   return { pos, opts };
@@ -93,6 +100,7 @@ async function main() {
 
   if (cmd === 'adapters') {
     for (const a of adapters) console.log(`${a.name.padEnd(9)} ${a.about}`);
+    for (const u of unloaded) console.log(`(could not load) ${u}`);
     return;
   }
   if (cmd === 'cases') {
@@ -102,13 +110,15 @@ async function main() {
     return;
   }
   if (cmd !== 'scan' || !pos[1]) {
-    console.log('usage: node xray.mjs scan <file|folder|url> [--as <adapter>] [--case <name>]\n       node xray.mjs adapters | cases');
+    console.log('usage: node xray.mjs scan <file|folder|url> [--as <adapter>] [--case <name>] [--question "<what you want to learn>"]\n       node xray.mjs adapters | cases');
     process.exit(cmd ? 1 : 0);
   }
 
   const input = pos[1];
   const caseDir = openCase(opts.case || basename(input.replace(/[\\/]+$/, '')) || input);
+  if (typeof opts.question === 'string') addQuestion(caseDir, opts.question);
   const r = await scan(input, opts, adapters, caseDir);
+  logScan(caseDir, r);
 
   // Print a bounded view; the full report is on disk.
   const md = renderMarkdown(r).split('\n');

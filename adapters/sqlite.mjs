@@ -2,8 +2,13 @@
 // sample of rows per table. Read-only, using Node's built-in SQLite. Many apps keep their
 // settings, caches and content in one of these.
 
-import { DatabaseSync } from 'node:sqlite';
 import { human } from '../lib/bytes.mjs';
+
+// Loaded only when a database is opened, so an older Node can still run every other adapter.
+async function loadSqlite() {
+  try { return (await import('node:sqlite')).DatabaseSync; }
+  catch { throw new Error(`reading SQLite needs Node 22.5 or newer (this is ${process.version})`); }
+}
 
 export default {
   name: 'sqlite',
@@ -14,6 +19,7 @@ export default {
     return ['.sqlite', '.sqlite3', '.db'].includes(t.ext) ? 40 : 0;
   },
   async run(t, ctx) {
+    const DatabaseSync = await loadSqlite();
     const db = new DatabaseSync(t.path, { readOnly: true });
     try {
       const objects = db.prepare("SELECT type, name, sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY type, name").all();

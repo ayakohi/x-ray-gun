@@ -4,6 +4,7 @@
 
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { launch } from '../lib/cdp.mjs';
 import { captureMotion } from '../lib/motion.mjs';
 
@@ -63,13 +64,31 @@ const PROBE = `(() => {
     tags: Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,12).map(([t,n])=>t.toLowerCase()+':'+n), title: document.title, nodes: document.querySelectorAll('*').length };
 })()`;
 
+// Runs in the page. The page's own words: headings, every link and button with where it leads
+// (repeats counted), and the visible text. Cheaper to read than screenshots, and quotable exactly.
+const TEXT = `(() => {
+  const clean = (s) => (s || '').replace(/\\s+/g, ' ').trim();
+  const heads = [...document.querySelectorAll('h1,h2,h3')].map((h) => h.tagName.toLowerCase() + ': ' + clean(h.innerText)).filter((x) => x.length > 4).slice(0, 120);
+  const acts = new Map();
+  for (const el of document.querySelectorAll('a[href],button,[role="button"],input[type="submit"]')) {
+    const label = clean(el.innerText || el.value || el.getAttribute('aria-label'));
+    if (!label || label.length > 80) continue;
+    const to = el.tagName === 'A' ? el.getAttribute('href') : '(button)';
+    const key = label + ' → ' + to;
+    acts.set(key, (acts.get(key) || 0) + 1);
+  }
+  const text = document.body ? document.body.innerText : '';
+  return { heads, actions: [...acts.entries()].slice(0, 300), text: text.slice(0, 60000), cut: text.length > 60000, words: text.split(/\\s+/).filter(Boolean).length };
+})()`;
+
 const LIBS = [['React','window.React||document.querySelector("[data-reactroot],#__next")'],['Vue','window.Vue||document.querySelector("[data-v-app],#app[data-v-]")'],['Three.js','window.THREE'],['PixiJS','window.PIXI'],['GSAP','window.gsap'],['jQuery','window.jQuery'],['Lottie','window.lottie||window.bodymovin'],['Next.js','window.__NEXT_DATA__'],['Nuxt','window.__NUXT__']];
 
 export default {
   name: 'web',
-  about: 'a live web page: structure, scripts, network, screenshot, and the styles behind each visual effect',
-  detect: (t) => (t.kind === 'url' ? 100 : 0),
+  about: 'a live web page (an address or an .html file): its words, structure, scripts, network, screenshot, the styles behind each effect, and motion',
+  detect: (t) => (t.kind === 'url' ? 100 : t.kind === 'file' && ['.html', '.htm'].includes(t.ext) ? 60 : 0),
   async run(t, ctx) {
+    const address = t.url || pathToFileURL(t.path).href;
     const browser = await launch();
     const requests = [];
     try {
@@ -81,7 +100,7 @@ export default {
       const responses = new Map();
       page.on('Network.responseReceived', (p) => responses.set(p.requestId, { status: p.response.status, mime: p.response.mimeType, url: p.response.url }));
 
-      await page.send('Page.navigate', { url: t.url });
+      await page.send('Page.navigate', { url: address });
       await new Promise((r) => { const to = setTimeout(r, 8000); page.on('Page.loadEventFired', () => { clearTimeout(to); setTimeout(r, 2500); }); });
 
       const probe = (await page.send('Runtime.evaluate', { expression: PROBE, returnByValue: true })).result.value || {};
@@ -104,12 +123,27 @@ export default {
         catch (err) { motion.unknowns.push(`Motion capture failed: ${err.message}`); }
       }
 
+      // The words, read last so content that loads while scrolling is included.
+      let words = null;
+      try {
+        words = (await page.send('Runtime.evaluate', { expression: TEXT, returnByValue: true })).result.value;
+        writeFileSync(join(ctx.filesDir, 'text.md'), [
+          `# Page text — ${probe.title || address}`, '',
+          '## Headings', ...words.heads.map((h) => `- ${h}`), '',
+          '## Links and buttons', ...words.actions.map(([k, n]) => `- ${k}${n > 1 ? `  ×${n}` : ''}`), '',
+          `## Visible text${words.cut ? ' (first 60,000 characters)' : ''}`, '', words.text,
+        ].join('\n'));
+      } catch { words = null; }
+
       const scripts = [...responses.values()].filter((r) => /javascript/.test(r.mime)).map((r) => r.url);
       const thirdParty = [...new Set(requests.map((r) => { try { return new URL(r.url).host; } catch { return null; } }).filter(Boolean))];
       writeFileSync(join(ctx.filesDir, 'network.json'), JSON.stringify([...responses.values()], null, 2));
 
       const findings = [];
-      findings.push({ what: `"${probe.title || '(no title)'}", ${probe.nodes} DOM nodes`, evidence: t.url });
+      findings.push({ what: `"${probe.title || '(no title)'}", ${probe.nodes} DOM nodes`, evidence: address });
+      if (words) {
+        findings.push({ what: `the page's words saved: ${words.words} words, ${words.heads.length} headings, ${words.actions.length} distinct links and buttons`, evidence: 'files/text.md' });
+      }
       if (libs.length) findings.push({ what: `libraries live in the page: ${libs.join(', ')}`, evidence: 'window globals' });
       if (probe.canvases) findings.push({ what: `${probe.canvases} <canvas> (custom drawing / WebGL likely)`, evidence: 'DOM' });
       if (probe.svgs) findings.push({ what: `${probe.svgs} <svg>`, evidence: 'DOM' });
@@ -129,14 +163,14 @@ export default {
 
       return {
         kind: 'web page (live)',
-        summary: `${probe.title || t.url}: ${probe.nodes} nodes, ${effects.length} distinct visual effects, ${libs.join('/') || 'no known libs'}, ${thirdParty.length} hosts contacted.${shot ? ' Screenshot saved.' : ''}`,
+        summary: `${probe.title || address}: ${probe.nodes} nodes, ${effects.length} distinct visual effects, ${libs.join('/') || 'no known libs'}, ${thirdParty.length} hosts contacted.${shot ? ' Screenshot saved.' : ''}`,
         facts: { nodes: probe.nodes, canvases: probe.canvases, svgs: probe.svgs, scripts: scripts.length, requests: requests.length, libraries: libs, ...motion.facts },
         findings: [...findings, ...effects, ...motion.findings],
         guesses: [...guesses, ...motion.guesses],
         unknowns: ['One viewport (1280×900), no clicks or login: state behind those was not reached.', ...motion.unknowns],
-        next: ['Open files/screenshot.png to confirm you measured the right page.', motion.files.length ? 'Flip through files/scroll/ in order: it is the page as a filmstrip, one frame per scroll step.' : null, 'Copy an effect block straight into your CSS and tune the numbers.', `Read files/network.json for the scripts, then scan a downloaded bundle with the js adapter.`].filter(Boolean),
+        next: ['Open files/screenshot.png to confirm you measured the right page.', words ? "Read files/text.md for the page's own words and where each button leads." : null, motion.files.length ? 'Flip through files/scroll/ in order: it is the page as a filmstrip, one frame per scroll step.' : null, 'Copy an effect block straight into your CSS and tune the numbers.', `Read files/network.json for the scripts, then scan a downloaded bundle with the js adapter.`].filter(Boolean),
         inventory: [`hosts contacted: ${thirdParty.slice(0, 20).join(', ')}`, ...scripts.slice(0, 20).map((s) => `script: ${s}`)],
-        files: [shot ? 'files/screenshot.png' : null, 'files/network.json', ...(motion.files.length ? [`files/scroll/ (${motion.files.length} frames)`] : [])].filter(Boolean),
+        files: [shot ? 'files/screenshot.png' : null, words ? 'files/text.md' : null, 'files/network.json', ...(motion.files.length ? [`files/scroll/ (${motion.files.length} frames)`] : [])].filter(Boolean),
       };
     } finally {
       browser.close();

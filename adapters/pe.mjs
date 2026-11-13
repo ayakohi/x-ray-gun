@@ -36,7 +36,7 @@ export default {
       const sectionCount = head.readUInt16LE(peOff + 6);
       const tsRaw = head.readUInt32LE(peOff + 8);
       const optMagic = head.readUInt16LE(peOff + 24);
-      const subsystem = head.readUInt16LE(peOff + 24 + (optMagic === 0x20b ? 68 : 68));
+      const subsystem = head.readUInt16LE(peOff + 24 + 68);   // same offset in 32-bit and 64-bit images
       facts.architecture = MACHINES[machine] || `0x${machine.toString(16)}`;
       facts.kind = optMagic === 0x20b ? '64-bit image' : '32-bit image';
       facts.sections = sectionCount;
