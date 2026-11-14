@@ -20,6 +20,7 @@ flowchart TD
     O --> D
     D --> H["5 · Challenge: a fresh reader tries to break them"]
     H -- "what survived, as rules in words only" --> B["6 · Brief: a build order for your own thing"]
+    O -. "the look, as far as --keep allows" .-> B
     Q(["Your question and what you are building"]) -.-> B
     B --> Y(["You build yours"])
 ```
@@ -93,7 +94,7 @@ After that the whole method is a loop: open `NEXT.md`, do the step, run the comm
 ```
 <case>/
   NEXT.md          the pointer: what is done, and the step to do now
-  0-frame.md       your question and what you are building
+  0-frame.md       your question, what you are building, and the --keep setting
   1-survey.md      kind, shape, and who reads what
   glossary.md      this case's names for its parts
   2-behaviour.md   what it does
@@ -148,15 +149,17 @@ node xray.mjs cases         # past studies
 | A zip-family file (`.zip .apk .jar .msix .docx .xpi .ipa .whl`) | The member list, what kind of package it is, the extracted files |
 | A Windows `.exe` or `.dll` | How it was built and from what. Header facts only. |
 | A `.sqlite` or `.db` file | Tables, row counts, a few sample rows, read-only |
-| A `.har` network capture | Requests by host, API calls |
+| A `.har` network capture | Requests by host, API calls, and where a secret is sent in the clear (never its value) |
 | Any folder | What is in it, the README and manifests, the code by language |
 | Anything else | Signature, readable strings, embedded files |
 
 ### Where it stops
 
-The gun is strongest on web pages. It sees one screen size and nothing behind a click or a login. It does not read what compiled code does, and it has no eyes for a picture or a video.
+The gun is strongest on web pages. It sees one screen size and nothing behind a click or a login. It watches a still page for six seconds, so something that changes on its own less often than that can be mistaken for a reaction to the mouse or the scroll. It does not read what compiled code does, and it has no eyes for a picture or a video.
 
 Scanning a page runs that page's own scripts in a real browser on your computer, with your network access, the same as opening it yourself. Scan pages you would open anyway.
+
+Web addresses saved to disk have the values of secret-looking parameters, such as tokens and keys, replaced by "…".
 
 Files that come out of an archive stay inside the case folder, and the real unpacked size counts against a budget, so a file that lies about its size is set aside rather than filling your disk.
 
@@ -174,11 +177,12 @@ The gun stays small on purpose. A new adapter is added only after the same kind 
 
 - The sequence ran end to end twice on one web page, on Claude Haiku, with every reader given a single line. That was before the honesty guards were added.
 - The guarded Decide, Challenge and Brief steps then ran once on the same notes. Challenge weakened two conclusions, marked three "cannot tell", and found seven claims with no evidence under them.
-- The guarded Survey, Watch and Open steps have not been run yet.
-- The web, code-folder, folder, database and zip adapters each pass a small check. The Electron, Windows-program, network-capture and fallback adapters have not been rechecked since they were first built. In real studies so far, only the web adapter has been used.
+- The whole guarded sequence then ran once end to end on a second web page, on Claude Haiku, with one helper per step and a single line each. Every step wrote a well-formed file, in 18 to 66 seconds. Challenge weakened two conclusions and marked three "cannot tell". The rules file still held four rules, which is why 1.3.3 lets a thin study write fewer.
+- The web, code-folder, folder, database, zip and network-capture adapters each pass a small check. The Electron, Windows-program and fallback adapters have not been rechecked since they were first built. In real studies so far, only the web adapter has been used.
 - Version 1.1.0 was checked against hostile files: a zip that lies about its size, an asar whose names point outside its folder or past its end, a folder holding a link back to itself, and a source map with escaping names. Each was set aside. The same checks fail on 1.0.0.
 - The three `--keep` settings were each run once on one web page, on Claude Haiku, from the same notes. `close` came nearest the original, and `words` carried nothing of the look.
 - A builder on Claude Sonnet built a page twice, each time from a `close` plan alone. From the 1.2.0 plan the measured parts matched the original and the page around them did not: the plan held no page colours, fonts or layout. From the 1.3.0 plan the page matched the original section for section, at one screen width, with stand-in blocks for photos.
+- The six-second still watch (1.3.1) was checked by one scan of a page with a slideshow: the slideshow was listed as moving on its own, about every three seconds. The masking of secret values (1.3.2) was checked on a small test capture: the token appeared nowhere in the case folder.
 - Since 1.3.3 Decide and Challenge may write fewer cards and rules, or none. That wording has not been run with a reader yet.
 - The browser finder knows the usual macOS and Linux paths, and they have not been run on a Mac or on Linux yet.
 - Not tested yet: a study paused for days, a target that is not a web page, and a comparison of build plans against what a person would write.
