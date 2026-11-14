@@ -2,7 +2,7 @@
 name: x-ray-gun
 description: Study something that already exists — a website, an app, a repo, a file, a folder, a database — in a fixed sequence of steps that ends in a build plan for the user's own thing. Load when the user wants to understand how or why some app, site or repo was built, learn from it, test or try x-ray-gun on a target, inspect or identify an unknown file, pull apart an Electron/web/desktop app, read an app's database, or reverse-engineer anything they own or are allowed to examine. Start with brain/next.mjs; a scan alone is only step one.
 metadata:
-  version: "1.3.0"
+  version: "1.3.1"
 ---
 
 # x-ray-gun
@@ -97,7 +97,7 @@ Force one with `--as <adapter>`. Useful options: `--deep` (js: include node_modu
 
 ### Reading the web adapter's motion lines
 
-- **moves on its own**: changed while nobody touched the page (looping animation, autoplay, a ticker).
+- **moves on its own**: changed while nobody touched the page for six seconds (looping animation, autoplay, a slideshow, a ticker). The line says how often it changed.
 - **follows the pointer**: changed while the mouse swept across the first screen (parallax, tilt, custom cursor).
 - **on scroll**: changed while the gun wheel-scrolled down like a person. `fades in`, `slides Y 50px → 0px`, `scales`, `rotates` describe the change; `pinned` means it stayed on screen while the page moved; `parallax 0.6×` means it scrolled slower than the page; `starts near scrollY N` is where it kicks in.
 - **animation "name"**: a CSS/Web Animation the browser itself reports, with its duration and easing.

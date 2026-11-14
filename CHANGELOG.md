@@ -1,5 +1,10 @@
 # What changed
 
+## 1.3.1 — 14 November 2026
+
+- The web adapter watches a still page for six seconds, up from 1.4, and says how often each thing changes. A slideshow that changes every few seconds is now listed as moving on its own. Before, its change landed in the pointer or scroll step and was blamed on that.
+- Scale changes print with two decimals.
+
 ## 1.3.0 — 14 November 2026
 
 **A close plan now carries the page, not only its parts.**

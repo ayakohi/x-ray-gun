@@ -1,6 +1,6 @@
 # x-ray-gun 🔫
 
-*By ayakohi and Cygnus. Version 1.3.0 ([what changed](CHANGELOG.md)).*
+*By ayakohi and Cygnus. Version 1.3.1 ([what changed](CHANGELOG.md)).*
 
 Point it at something that already exists, such as a website, an app, a file or a folder. It shows you how the thing was built, helps you work out why it was built that way, and ends with a build plan for something of your own.
 
