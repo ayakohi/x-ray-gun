@@ -20,7 +20,7 @@ Then two short lists:
 - **Claims with nothing under them** — any line in 4-read.md tagged Seen or Strong that the notes do not support. Quote the line and say what the notes hold in its place.
 - **What the read left out** — anything in the notes that shaped the thing and has no card.
 
-**File two, the rules:** {case}/6-rules.md. Write four or five rules a builder could follow, drawn from the cards whose verdict is stands or weakened. Write this file in words only: describe every size, colour and amount in plain words, and call the maker "the maker". State the choice behind each look and leave the look itself to the builder: name a look by the job it does, eg. "one accent treatment", "one entrance motion". Give each rule three lines:
+**File two, the rules:** {case}/6-rules.md. Write one rule for each choice a builder could follow, five at the most, drawn only from the cards whose verdict is stands or weakened. When no card stands or is weakened, write the single line "No rule survived." in this file and end it there. Write this file in words only: describe every size, colour and amount in plain words, and call the maker "the maker". State the choice behind each look and leave the look itself to the builder: name a look by the job it does, eg. "one accent treatment", "one entrance motion". Give each rule three lines:
    - **Rule:** a choice a builder makes. eg. "Use one surface treatment for every card, and change it only where the person makes a choice."
    - **Worked because:** what it did for the person or the maker. Begin with "Possibly:" for a weakened card. eg. "A new visitor decides in seconds."
    - **Depended on:** what the maker had that made it work. eg. "A menu short enough to have one clear favourite."

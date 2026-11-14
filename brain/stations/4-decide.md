@@ -12,7 +12,7 @@ Write one file: {case}/4-read.md, with three parts. Use plain words and short se
 
 1. **Where it steers** — one line for each thing the person using it is led toward, with the clues. eg. "The daily special gets ordered first: it is largest, first, and the only item with a photo. [Strong: three clues agree]"
 
-2. **Decisions** — look in five places: Repeats (the same thing done many times), Exceptions (the one place a rule breaks), Gaps (something usual for this kind of thing that is missing), Effort (a spot where far more work went in), Mismatches (where the two sets of notes, or the maker's own words, disagree). Choose the five features that shaped the thing most. Write one card for each:
+2. **Decisions** — look in five places: Repeats (the same thing done many times), Exceptions (the one place a rule breaks), Gaps (something usual for this kind of thing that is missing), Effort (a spot where far more work went in), Mismatches (where the two sets of notes, or the maker's own words, disagree). Choose the features that shaped the thing most, five at the most. Write fewer when the notes hold fewer. Write one card for each:
    - **What is there:** the feature, as the notes record it.
    - **How it came about:** chosen (someone decided it), default (a tool or habit supplied it), forced (a limit left one option), leftover (unfinished or forgotten), grown (it built up over time from many changes or many hands), or "cannot tell".
    - **Instead of:** the nearest other thing that could have been there.

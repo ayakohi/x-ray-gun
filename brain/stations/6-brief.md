@@ -12,6 +12,7 @@ Write one file: {case}/7-brief.md, with the parts below in this order. Use plain
 - **Adapt** — the choice holds after a change. Name the change.
 - **Needs their conditions** — the choice holds only with something the other maker had. Name it.
 - **Leave** — the other maker's alone.
+When 6-rules.md holds the line "No rule survived.", write that line under this heading and go on to the next part.
 Then add **To test**: one or two ideas of your own that came up while sorting, each marked "unproven".
 
 {look}

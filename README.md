@@ -1,6 +1,6 @@
 # x-ray-gun 🔫
 
-*By ayakohi and Cygnus. Version 1.3.2 ([what changed](CHANGELOG.md)).*
+*By ayakohi and Cygnus. Version 1.3.3 ([what changed](CHANGELOG.md)).*
 
 Point it at something that already exists, such as a website, an app, a file or a folder. It shows you how the thing was built, helps you work out why it was built that way, and ends with a build plan for something of your own.
 
@@ -76,7 +76,7 @@ Every study is one **case folder**. Each step reads a few files from it and writ
 | 1 · Survey | A first look: the kind of thing, its shape, and who reads what | `1-survey.md`, `glossary.md` |
 | 2 · Watch | Writes down what the thing does when someone uses it | `2-behaviour.md` |
 | 3 · Open | Writes down what the thing is made of, with exact values | `3-build.md` |
-| 4 · Decide | Picks the five features that shaped it most and weighs rival explanations for each | `4-read.md` |
+| 4 · Decide | Picks up to five features that shaped it most and weighs rival explanations for each | `4-read.md` |
 | 5 · Challenge | A fresh reader tries to prove each conclusion wrong, then writes the rules that survive | `5-challenge.md`, `6-rules.md` |
 | 6 · Brief | Opens your frame, sorts the rules for your project, sets down the look as far as `--keep` allows, writes your build order | `7-brief.md` |
 
@@ -179,6 +179,7 @@ The gun stays small on purpose. A new adapter is added only after the same kind 
 - Version 1.1.0 was checked against hostile files: a zip that lies about its size, an asar whose names point outside its folder or past its end, a folder holding a link back to itself, and a source map with escaping names. Each was set aside. The same checks fail on 1.0.0.
 - The three `--keep` settings were each run once on one web page, on Claude Haiku, from the same notes. `close` came nearest the original, and `words` carried nothing of the look.
 - A builder on Claude Sonnet built a page twice, each time from a `close` plan alone. From the 1.2.0 plan the measured parts matched the original and the page around them did not: the plan held no page colours, fonts or layout. From the 1.3.0 plan the page matched the original section for section, at one screen width, with stand-in blocks for photos.
+- Since 1.3.3 Decide and Challenge may write fewer cards and rules, or none. That wording has not been run with a reader yet.
 - The browser finder knows the usual macOS and Linux paths, and they have not been run on a Mac or on Linux yet.
 - Not tested yet: a study paused for days, a target that is not a web page, and a comparison of build plans against what a person would write.
 

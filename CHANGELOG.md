@@ -1,5 +1,9 @@
 # What changed
 
+## 1.3.3 — 14 November 2026
+
+- Decide writes up to five cards, and fewer when the notes hold fewer. Challenge writes one rule per surviving choice, up to five, and "No rule survived." when none do. Brief carries that line through. Before, the stations asked for five cards and four or five rules, and a thin study was padded to fit.
+
 ## 1.3.2 — 14 November 2026
 
 - New `lib/redact.mjs`: addresses written to disk have the values of secret-looking parameters (token, key, signature, password, session, code) replaced by "…". Used for HAR request lines and the web adapter's `network.json`.
