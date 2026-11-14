@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { launch } from '../lib/cdp.mjs';
 import { captureMotion } from '../lib/motion.mjs';
+import { redactUrl } from '../lib/redact.mjs';
 
 // Runs in the page. Finds elements whose computed style uses an "effect" property, and returns the
 // properties that actually make the look, deduped by the style fingerprint so 100 identical cards
@@ -148,7 +149,7 @@ export default {
       await page.send('Runtime.enable');
       page.on('Network.requestWillBeSent', (p) => requests.push({ url: p.request.url, type: p.type, method: p.request.method }));
       const responses = new Map();
-      page.on('Network.responseReceived', (p) => responses.set(p.requestId, { status: p.response.status, mime: p.response.mimeType, url: p.response.url }));
+      page.on('Network.responseReceived', (p) => responses.set(p.requestId, { status: p.response.status, mime: p.response.mimeType, url: redactUrl(p.response.url) }));
 
       await page.send('Page.navigate', { url: address });
       await new Promise((r) => { const to = setTimeout(r, 8000); page.on('Page.loadEventFired', () => { clearTimeout(to); setTimeout(r, 2500); }); });

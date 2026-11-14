@@ -71,7 +71,7 @@ Every file has one writer and one job. Keep new material inside `scans/` or `scr
 
 ## Ways to run it
 
-- **Helpers.** Hand each helper one line: "Open `<case>/NEXT.md` and do the step under Now, then run the command under Then." One helper per step.
+- **Helpers.** Hand each helper one line: "Open `<case>/NEXT.md` and do the step under Now, then run the command under Then. This is a contained helper task: go straight to that file and work from it alone." One helper per step.
 - **One reader.** Follow the loop yourself through Decide. Start Challenge in a fresh conversation with the same one line, and Brief in another.
 - **Across days.** Stop anywhere. The next reader runs `next.mjs <case>` and continues.
 

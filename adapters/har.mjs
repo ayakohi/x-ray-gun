@@ -3,6 +3,7 @@
 
 import { readFileSync } from 'node:fs';
 import { human } from '../lib/bytes.mjs';
+import { redactUrl } from '../lib/redact.mjs';
 
 export default {
   name: 'har',
@@ -24,7 +25,7 @@ export default {
       try { host = new URL(url).host; } catch { /* */ }
       byHost[host] = (byHost[host] || 0) + 1;
       const mime = e.response?.content?.mimeType || '';
-      if (/json|graphql/.test(mime) || /\/api\/|\/graphql/.test(url)) apis.push({ what: `${e.request.method} ${url.slice(0, 140)} → ${e.response?.status} (${mime})`, evidence: `${human(e.response?.content?.size || 0)}` });
+      if (/json|graphql/.test(mime) || /\/api\/|\/graphql/.test(url)) apis.push({ what: `${e.request.method} ${redactUrl(url).slice(0, 140)} → ${e.response?.status} (${mime})`, evidence: `${human(e.response?.content?.size || 0)}` });
       const hay = url + ' ' + (e.request?.headers || []).map((h) => `${h.name}=${h.value}`).join(' ');
       const m = hay.match(SECRET);
       // Names which parameter and where. The value itself is never written.

@@ -2,7 +2,7 @@
 name: x-ray-gun
 description: Study something that already exists — a website, an app, a repo, a file, a folder, a database — in a fixed sequence of steps that ends in a build plan for the user's own thing. Load when the user wants to understand how or why some app, site or repo was built, learn from it, test or try x-ray-gun on a target, inspect or identify an unknown file, pull apart an Electron/web/desktop app, read an app's database, or reverse-engineer anything they own or are allowed to examine. Start with brain/next.mjs; a scan alone is only step one.
 metadata:
-  version: "1.3.1"
+  version: "1.3.2"
 ---
 
 # x-ray-gun
@@ -24,7 +24,7 @@ Every request to use, test or try x-ray-gun on a target is a **study**, and a st
 
 `--keep` sets how much of the measured look the build plan carries: `close` (the default) carries the page from top to bottom and each treatment's full measured style, `numbers` carries the few values that make each look, `words` carries the rules alone. Use the default unless the user asks for less.
 
-Tell the user the rough cost before you begin: a full study is several steps and, in tests, 150,000 to 350,000 tokens on a small model.
+Tell the user the rough cost before you begin: a full study is several steps and, in tests, 150,000 to 500,000 tokens on a small model. Each helper also pays for what it inherits from the session before it starts, about 60,000 tokens in one measured run. Hand each helper this one line: "Open `<case>/NEXT.md` and do the step under Now, then run the command under Then. This is a contained helper task: go straight to that file and work from it alone."
 
 **A scan alone** fits one case only: the user asks a single fact about a thing, such as "what is this file?" or "which fonts does this page use?". Run the scan, answer, and offer the full study.
 

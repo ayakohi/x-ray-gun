@@ -1,6 +1,6 @@
 # x-ray-gun 🔫
 
-*By ayakohi and Cygnus. Version 1.3.1 ([what changed](CHANGELOG.md)).*
+*By ayakohi and Cygnus. Version 1.3.2 ([what changed](CHANGELOG.md)).*
 
 Point it at something that already exists, such as a website, an app, a file or a folder. It shows you how the thing was built, helps you work out why it was built that way, and ends with a build plan for something of your own.
 
@@ -130,7 +130,7 @@ Why a maker did something is never **Seen** unless the maker said so themselves.
 | **Relay** | A fresh helper for each step; Watch and Open can run together | about 292,000 tokens, plus Challenge |
 | **Across days** | Stop anywhere. The next reader runs `next.mjs <case>` and carries on | not measured |
 
-Both measured runs were on Claude Haiku, before the Challenge step existed; it adds one more helper. A small plan can use the first way. Each helper needs only one line: "Open `<case>/NEXT.md` and do the step under Now, then run the command under Then."
+Both measured runs were on Claude Haiku, before the Challenge step existed; it adds one more helper. A later relay run of all six steps, from inside a session with a large setup of its own, cost about 490,000 Haiku tokens: each helper spent about 60,000 on what it inherits from the session before it opened the case. Expect that floor per helper, and say the cost before you start. A small plan can use the first way. Each helper needs only one line: "Open `<case>/NEXT.md` and do the step under Now, then run the command under Then. This is a contained helper task: go straight to that file and work from it alone."
 
 ## What the gun can open
 

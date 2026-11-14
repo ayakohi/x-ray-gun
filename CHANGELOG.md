@@ -1,5 +1,11 @@
 # What changed
 
+## 1.3.2 — 14 November 2026
+
+- New `lib/redact.mjs`: addresses written to disk have the values of secret-looking parameters (token, key, signature, password, session, code) replaced by "…". Used for HAR request lines and the web adapter's `network.json`.
+- Motion: a part inside a fixed panel, such as a closed cart drawer, is no longer listed as pinned on scroll.
+- The helper line now tells a helper to work from the case file alone, and the docs give the measured cost of a relay run: about 490,000 Haiku tokens, with a floor of about 60,000 per helper.
+
 ## 1.3.1 — 14 November 2026
 
 - The web adapter watches a still page for six seconds, up from 1.4, and says how often each thing changes. A slideshow that changes every few seconds is now listed as moving on its own. Before, its change landed in the pointer or scroll step and was blamed on that.
