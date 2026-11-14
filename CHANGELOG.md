@@ -1,6 +1,6 @@
 # What changed
 
-## Unreleased
+## 1.2.0 — 14 November 2026
 
 - **The build plan can keep the look.** `--keep close|numbers|words` on `brain/next.mjs` sets how much of the measured look Brief carries. `close` is the default: each treatment's full measured style. `numbers` carries the few values that make each look. `words` is the old behaviour. The rules still reach Brief in words, and the check on `6-rules.md` is unchanged.
 - The web adapter looks for Chrome, Chromium or Edge in the usual places on macOS and Linux as well as Windows, then on PATH. On Windows it also finds a per-user Chrome install. Not yet run on a Mac or on Linux.

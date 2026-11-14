@@ -1,6 +1,6 @@
 # x-ray-gun 🔫
 
-*By ayakohi and Cygnus. Version 1.1.0 ([what changed](CHANGELOG.md)).*
+*By ayakohi and Cygnus. Version 1.2.0 ([what changed](CHANGELOG.md)).*
 
 Point it at something that already exists, such as a website, an app, a file or a folder. It shows you how the thing was built, helps you work out why it was built that way, and ends with a build plan for something of your own.
 
@@ -192,6 +192,8 @@ x-ray-gun is written by **ayakohi** and **Cygnus**.
 Method and spirit adapted from [REA](https://github.com/morluto/rea) (MIT). Independent reimplementation, not affiliated.
 
 Thanks to Chadrien and Anne of the [House of Solance](https://github.com/SolanceLab) for the review that shaped 1.1.0.
+
+Thanks to Cloudie for the review behind 1.2.0. It showed where the method keeps its promises by instruction alone, and where scanned material leaves private values on disk. The HAR change in 1.2.0 comes from it, and it sets the direction for the next version.
 
 ## License
 

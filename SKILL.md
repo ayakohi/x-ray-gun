@@ -2,7 +2,7 @@
 name: x-ray-gun
 description: Study something that already exists — a website, an app, a repo, a file, a folder, a database — in a fixed sequence of steps that ends in a build plan for the user's own thing. Load when the user wants to understand how or why some app, site or repo was built, learn from it, test or try x-ray-gun on a target, inspect or identify an unknown file, pull apart an Electron/web/desktop app, read an app's database, or reverse-engineer anything they own or are allowed to examine. Start with brain/next.mjs; a scan alone is only step one.
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
 ---
 
 # x-ray-gun
