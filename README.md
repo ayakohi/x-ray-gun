@@ -1,6 +1,6 @@
 # x-ray-gun 🔫
 
-*By ayakohi and Cygnus. Version 1.2.0 ([what changed](CHANGELOG.md)).*
+*By ayakohi and Cygnus. Version 1.3.0 ([what changed](CHANGELOG.md)).*
 
 Point it at something that already exists, such as a website, an app, a file or a folder. It shows you how the thing was built, helps you work out why it was built that way, and ends with a build plan for something of your own.
 
@@ -37,7 +37,7 @@ The look travels beside the rules, and you set how much of it comes along when y
 
 | `--keep` | The build plan carries |
 |---|---|
-| `close` (the default) | each treatment's full measured style, as the scan read it |
+| `close` (the default) | the page from top to bottom (its colours, fonts and sections), then each treatment's full measured style, as the scan read it |
 | `numbers` | each treatment in words, with the two or three values that make it |
 | `words` | the rules alone |
 
@@ -142,7 +142,7 @@ node xray.mjs cases         # past studies
 
 | You have | It gives you |
 |---|---|
-| A web address or an `.html` file | The page's own words, every link and button with where it leads, a screenshot, the real CSS behind each visual effect, and what moves on its own, with the pointer, and on scroll |
+| A web address or an `.html` file | The page's own words, every link and button with where it leads, a screenshot, the page's base colours and fonts, its sections from top to bottom, the real CSS behind each visual effect, and what moves on its own, with the pointer, and on scroll |
 | A code folder or a `.js` bundle | Entry points, imports, libraries, Electron windows and message channels, original source recovered from source maps |
 | An Electron `app.asar` | The unpacked code, then the same as a code folder |
 | A zip-family file (`.zip .apk .jar .msix .docx .xpi .ipa .whl`) | The member list, what kind of package it is, the extracted files |
@@ -178,6 +178,7 @@ The gun stays small on purpose. A new adapter is added only after the same kind 
 - The web, code-folder, folder, database and zip adapters each pass a small check. The Electron, Windows-program, network-capture and fallback adapters have not been rechecked since they were first built. In real studies so far, only the web adapter has been used.
 - Version 1.1.0 was checked against hostile files: a zip that lies about its size, an asar whose names point outside its folder or past its end, a folder holding a link back to itself, and a source map with escaping names. Each was set aside. The same checks fail on 1.0.0.
 - The three `--keep` settings were each run once on one web page, on Claude Haiku, from the same notes. `close` came nearest the original, and `words` carried nothing of the look.
+- A builder on Claude Sonnet built a page twice, each time from a `close` plan alone. From the 1.2.0 plan the measured parts matched the original and the page around them did not: the plan held no page colours, fonts or layout. From the 1.3.0 plan the page matched the original section for section, at one screen width, with stand-in blocks for photos.
 - The browser finder knows the usual macOS and Linux paths, and they have not been run on a Mac or on Linux yet.
 - Not tested yet: a study paused for days, a target that is not a web page, and a comparison of build plans against what a person would write.
 

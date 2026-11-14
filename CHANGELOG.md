@@ -1,5 +1,12 @@
 # What changed
 
+## 1.3.0 — 14 November 2026
+
+**A close plan now carries the page, not only its parts.**
+- The web adapter reads the page base (background, text colour, body and heading fonts) and the page's sections from top to bottom, each with its size, background, heading, and whether a photo fills it. A band painted by a child that covers it takes that child's colour.
+- `--keep close` hands Brief those lines and five pictures of the page, and Brief writes "The page, top to bottom" ahead of the measured treatments.
+- `--keep numbers` opens its look lines with one line for the page itself.
+
 ## 1.2.0 — 14 November 2026
 
 - **The build plan can keep the look.** `--keep close|numbers|words` on `brain/next.mjs` sets how much of the measured look Brief carries. `close` is the default: each treatment's full measured style. `numbers` carries the few values that make each look. `words` is the old behaviour. The rules still reach Brief in words, and the check on `6-rules.md` is unchanged.

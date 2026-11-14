@@ -42,7 +42,7 @@ Watch and Open can run at the same time. Challenge and Brief each run in a fresh
 
 The rules always reach Brief in words. The look travels beside them, set by `--keep` and saved in `0-frame.md`:
 
-- **close** (the default): Brief also reads `3-build.md` and the scan reports, and sets down each treatment's full measured style.
+- **close** (the default): Brief also reads `3-build.md`, the scan reports and five pictures of the page. It sets down the page from top to bottom (base colours, fonts, each section), then each treatment's full measured style.
 - **numbers**: Brief also reads `3-build.md`, and sets down each treatment in words with the two or three values that make it.
 - **words**: Brief reads the frame and the rules alone.
 

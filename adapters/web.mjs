@@ -86,6 +86,51 @@ const TEXT = `(() => {
   return { heads, closed, actions: [...acts.entries()].slice(0, 300), text: text.slice(0, 60000), cut: text.length > 60000, words: text.split(/\\s+/).filter(Boolean).length };
 })()`;
 
+// Runs in the page. The page itself, as a builder needs it: its base colours and fonts, then its
+// sections from top to bottom with size, background and what each holds. A wrapper taller than the
+// screen is opened up, so the list names the bands a person scrolls past, not one box around them.
+const PAGE = `(() => {
+  const clear = (c) => !c || c === 'transparent' || /rgba\\(\\s*0,\\s*0,\\s*0,\\s*0\\s*\\)/.test(c);
+  const solid = (el) => { for (let e = el; e; e = e.parentElement) { const c = getComputedStyle(e).backgroundColor; if (!clear(c)) return c; } return 'rgb(255, 255, 255)'; };
+  // A band's colour is often painted by a child that covers it, with the band itself left clear.
+  const fill = (el) => {
+    if (!clear(getComputedStyle(el).backgroundColor)) return getComputedStyle(el).backgroundColor;
+    const r = el.getBoundingClientRect(), area = r.width * r.height;
+    let layer = [...el.children];
+    for (let d = 0; d < 3 && layer.length; d++) {
+      for (const c of layer) { const q = c.getBoundingClientRect(), bg = getComputedStyle(c).backgroundColor; if (!clear(bg) && q.width * q.height >= area * 0.8) return bg; }
+      layer = layer.flatMap((c) => [...c.children]).slice(0, 60);
+    }
+    return solid(el);
+  };
+  const clean = (s) => (s || '').replace(/\\s+/g, ' ').trim();
+  const name = (el) => el.tagName.toLowerCase() + (el.id && el.id.length <= 24 ? '#' + el.id : '') + (typeof el.className === 'string' && el.className.trim() ? '.' + el.className.trim().split(/\\s+/).slice(0, 2).join('.') : '');
+  const b = getComputedStyle(document.body), h = document.querySelector('h1,h2'), hc = h ? getComputedStyle(h) : null;
+  const base = { background: solid(document.body), text: b.color, font: b.fontFamily, size: b.fontSize, lineHeight: b.lineHeight,
+    heading: hc ? { font: hc.fontFamily, weight: hc.fontWeight, size: hc.fontSize, color: hc.color } : null };
+  const vw = document.documentElement.clientWidth, vh = innerHeight, out = [];
+  const band = (el) => {
+    const r = el.getBoundingClientRect(), cs = getComputedStyle(el);
+    if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity === 0) return false;
+    if (cs.position === 'fixed' && r.height >= vh * 0.9) return false;
+    return r.width >= vw * 0.6 && r.height >= 24;
+  };
+  const visit = (el, depth) => {
+    for (const c of el.children) {
+      if (out.length >= 30 || !band(c)) continue;
+      const r = c.getBoundingClientRect(), inner = [...c.children].filter(band);
+      if (depth < 6 && (inner.length >= 2 || (inner.length === 1 && r.height > vh * 1.2))) { visit(c, depth + 1); continue; }
+      const cs = getComputedStyle(c);
+      const photo = /url\\(/.test(cs.backgroundImage) || [...c.querySelectorAll('img,video')].some((m) => { const q = m.getBoundingClientRect(); return q.width * q.height >= r.width * r.height * 0.5; });
+      out.push({ sel: name(c), y: Math.round(r.top + scrollY), size: Math.round(r.width) + '×' + Math.round(r.height), background: fill(c), photo,
+        pinned: cs.position === 'sticky' || cs.position === 'fixed', heading: clean((c.querySelector('h1,h2,h3') || {}).innerText).slice(0, 70),
+        images: c.querySelectorAll('img').length, buttons: c.querySelectorAll('a.btn,button,[role="button"],input[type="submit"]').length });
+    }
+  };
+  if (document.body) visit(document.body, 0);
+  return { base, sections: out.sort((p, q) => p.y - q.y) };
+})()`;
+
 const LIBS = [['React','window.React||document.querySelector("[data-reactroot],#__next")'],['Vue','window.Vue||document.querySelector("[data-v-app],#app[data-v-]")'],['Three.js','window.THREE'],['PixiJS','window.PIXI'],['GSAP','window.gsap'],['jQuery','window.jQuery'],['Lottie','window.lottie||window.bodymovin'],['Next.js','window.__NEXT_DATA__'],['Nuxt','window.__NUXT__']];
 
 export default {
@@ -141,6 +186,10 @@ export default {
         ].join('\n'));
       } catch { words = null; }
 
+      // The page's base and its sections, also read last, so sections that load on scroll are in the list.
+      let layout = null;
+      try { layout = (await page.send('Runtime.evaluate', { expression: PAGE, returnByValue: true })).result.value; } catch { layout = null; }
+
       const scripts = [...responses.values()].filter((r) => /javascript/.test(r.mime)).map((r) => r.url);
       const thirdParty = [...new Set(requests.map((r) => { try { return new URL(r.url).host; } catch { return null; } }).filter(Boolean))];
       writeFileSync(join(ctx.filesDir, 'network.json'), JSON.stringify([...responses.values()], null, 2));
@@ -150,6 +199,14 @@ export default {
       if (words) {
         findings.push({ what: `the page's words saved: ${words.words} words, ${words.heads.length} headings, ${words.actions.length} distinct links and buttons${words.closed.length ? `, ${words.closed.length} closed rows with their hidden text` : ''}`, evidence: 'files/text.md' });
       }
+      if (layout?.base) {
+        const p = layout.base;
+        findings.push({ what: `page base: background ${p.background}, text ${p.text}, body font ${p.font} at ${p.size} (line height ${p.lineHeight})${p.heading ? `, headings ${p.heading.font} weight ${p.heading.weight} at ${p.heading.size} in ${p.heading.color}` : ''}`, evidence: 'computed style' });
+      }
+      (layout?.sections || []).forEach((s, i) => findings.push({
+        what: `section ${i + 1}: \`${s.sel}\` at y ${s.y}, ${s.size}, background ${s.background}${s.photo ? ', filled by a photo or video' : ''}${s.pinned ? ', stays on screen while scrolling' : ''}${s.heading ? `, heading "${s.heading}"` : ''}, ${s.images} images, ${s.buttons} buttons`,
+        evidence: 'DOM + layout',
+      }));
       if (libs.length) findings.push({ what: `libraries live in the page: ${libs.join(', ')}`, evidence: 'window globals' });
       if (probe.canvases) findings.push({ what: `${probe.canvases} <canvas> (custom drawing / WebGL likely)`, evidence: 'DOM' });
       if (probe.svgs) findings.push({ what: `${probe.svgs} <svg>`, evidence: 'DOM' });

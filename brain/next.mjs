@@ -48,6 +48,12 @@ function scans(dir) {
   });
 }
 
+// Four frames spread evenly from top to bottom.
+function spread(frames) {
+  const n = Math.min(4, frames.length);
+  return [...new Set(Array.from({ length: n }, (_, i) => frames[Math.round(i * (frames.length - 1) / Math.max(1, n - 1))]))];
+}
+
 function surveyMaterials(list) {
   const L = [];
   for (const s of list) {
@@ -55,9 +61,8 @@ function surveyMaterials(list) {
     if (s.text) L.push(`- ${s.text} — the thing's own words, with every link and button.`);
     if (s.shot) L.push(`- ${s.shot} — the first screen.`);
     if (s.frames.length) {
-      // Four frames spread evenly, chosen here so the survey reader spends nothing on opening them.
-      const n = Math.min(4, s.frames.length);
-      const pick = [...new Set(Array.from({ length: n }, (_, i) => s.frames[Math.round(i * (s.frames.length - 1) / Math.max(1, n - 1))]))];
+      // Chosen here so the survey reader spends nothing on opening them.
+      const pick = spread(s.frames);
       L.push(`  Frame paths for the Watch list, top to bottom (copy them into Watch reads; leave them unopened):`, ...pick.map((f) => `  - ${f}`));
     }
   }
@@ -87,7 +92,12 @@ function mergeNames(dir) {
 function look(keep, list) {
   if (keep === 'words') return { materials: '', part: '' };
   const m = ["- {case}/3-build.md — what the maker's thing is made of, with measured values."];
-  if (keep === 'close') for (const s of list) if (s.report) m.push(`- ${s.report} — a scan report, with the measured style of each effect.`);
+  if (keep === 'close') {
+    for (const s of list) if (s.report) m.push(`- ${s.report} — a scan report, with the page base, each section, and the measured style of each effect.`);
+    // Pictures show where things sit, which no measured line does. The newest scan that has them is enough.
+    const seen = [...list].reverse().find((s) => s.shot);
+    if (seen) m.push(`- ${seen.shot} — the first screen, as a picture.`, ...spread(seen.frames).map((f) => `- ${f} — the page further down, as a picture.`));
+  }
   return { materials: m.join('\n'), part: readFileSync(join(HERE, 'stations', 'look', `${keep}.md`), 'utf8').trim() };
 }
 

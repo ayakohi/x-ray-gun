@@ -2,7 +2,7 @@
 name: x-ray-gun
 description: Study something that already exists — a website, an app, a repo, a file, a folder, a database — in a fixed sequence of steps that ends in a build plan for the user's own thing. Load when the user wants to understand how or why some app, site or repo was built, learn from it, test or try x-ray-gun on a target, inspect or identify an unknown file, pull apart an Electron/web/desktop app, read an app's database, or reverse-engineer anything they own or are allowed to examine. Start with brain/next.mjs; a scan alone is only step one.
 metadata:
-  version: "1.2.0"
+  version: "1.3.0"
 ---
 
 # x-ray-gun
@@ -22,7 +22,7 @@ Every request to use, test or try x-ray-gun on a target is a **study**, and a st
    ```
 3. **Follow the loop.** Open `NEXT.md` in the case folder, do the step under **Now**, run the command under **Then**, and repeat until `NEXT.md` says **Done**. The first step it gives you is the scan. [brain/BRAIN.md](brain/BRAIN.md) explains the sequence.
 
-`--keep` sets how much of the measured look the build plan carries: `close` (the default) carries each treatment's full measured style, `numbers` carries the few values that make each look, `words` carries the rules alone. Use the default unless the user asks for less.
+`--keep` sets how much of the measured look the build plan carries: `close` (the default) carries the page from top to bottom and each treatment's full measured style, `numbers` carries the few values that make each look, `words` carries the rules alone. Use the default unless the user asks for less.
 
 Tell the user the rough cost before you begin: a full study is several steps and, in tests, 150,000 to 350,000 tokens on a small model.
 
@@ -83,7 +83,7 @@ Needs only Node 22.5 or newer and, for the `web` adapter, Chrome, Chromium or Ed
 
 | You have | Adapter | It gives you |
 |---|---|---|
-| a URL or an `.html` file | `web` | **the page's own words** in `files/text.md` (headings, visible text, every link and button with where it leads), structure, scripts, libraries, network, **a screenshot, the real CSS behind each visual effect, the big images/videos, and motion**: what moves on its own, what follows the pointer, and what scrolling does (fades, slides, pins, parallax, scale), plus a filmstrip of one frame per scroll step |
+| a URL or an `.html` file | `web` | **the page's own words** in `files/text.md` (headings, visible text, every link and button with where it leads), **the page base** (background, text colour, fonts) **and its sections from top to bottom** with size and background, structure, scripts, libraries, network, **a screenshot, the real CSS behind each visual effect, the big images/videos, and motion**: what moves on its own, what follows the pointer, and what scrolling does (fades, slides, pins, parallax, scale), plus a filmstrip of one frame per scroll step |
 | a website/app's code folder, or a `.js` bundle | `js` | entry points, import map, libraries (an import is a Finding; a text match with no import is a Guess), Electron windows/IPC/preload, **recovered original source from source maps** |
 | `app.asar` (Electron) | `asar` | unpacks the app's code, then runs `js` on it |
 | `.zip .apk .jar .msix .docx .xpi .ipa .whl …` | `zip` | member list, names the flavour, extracts, then runs `folder` on it |
