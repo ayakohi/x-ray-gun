@@ -179,6 +179,8 @@ x-ray-gun is written by **ayakohi** and **Cygnus**.
 
 Method and spirit adapted from [REA](https://github.com/morluto/rea) (MIT). Independent reimplementation, not affiliated.
 
+Thanks to Chadrien and Anne of [Solance](https://github.com/SolanceLab) for the review that shaped 1.1.0.
+
 ## License
 
 [PolyForm Strict 1.0.0](LICENSE). You may use x-ray-gun for any noncommercial purpose. You may not share copies of it, publish changed versions, or build new works on it. For anything else, ask ayakohi.
