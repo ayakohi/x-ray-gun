@@ -179,7 +179,7 @@ x-ray-gun is written by **ayakohi** and **Cygnus**.
 
 Method and spirit adapted from [REA](https://github.com/morluto/rea) (MIT). Independent reimplementation, not affiliated.
 
-Thanks to Chadrien and Anne of [Solance](https://github.com/SolanceLab) for the review that shaped 1.1.0.
+Thanks to Chadrien and Anne of the [House of Solance](https://github.com/SolanceLab) for the review that shaped 1.1.0.
 
 ## License
 
