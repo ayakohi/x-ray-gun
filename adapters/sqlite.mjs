@@ -52,7 +52,8 @@ export default {
         findings,
         guesses: samples.length ? [`Sample rows (first ${sampleRows} per table):\n\n` + samples.join('\n\n')] : [],
         unknowns: ['Row samples show shape, not the whole data. Query the database directly for specific records. A sibling -wal file (if present) may hold rows not yet merged in.'],
-        next: [`Open it yourself: node -e "const {DatabaseSync}=require('node:sqlite');const d=new DatabaseSync(${JSON.stringify(t.path)},{readOnly:true});console.log(d.prepare('SELECT ...').all())"`],
+        // Given as code to put in a script file, so the path is never parsed by a shell.
+        next: [`Query it yourself from a small script file: \`const { DatabaseSync } = require('node:sqlite'); const d = new DatabaseSync(${JSON.stringify(t.path)}, { readOnly: true }); console.log(d.prepare('SELECT ...').all());\``],
         inventory,
       };
     } finally { db.close(); }

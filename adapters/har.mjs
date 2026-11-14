@@ -6,7 +6,7 @@ import { human } from '../lib/bytes.mjs';
 
 export default {
   name: 'har',
-  about: 'a saved .har network capture: requests by host, APIs, payload shapes, exposed secrets',
+  about: 'a saved .har network capture: requests by host, API calls, exposed secrets',
   detect(t) {
     if (t.kind !== 'file') return 0;
     if (t.ext === '.har') return 90;

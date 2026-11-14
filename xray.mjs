@@ -2,7 +2,8 @@
 // x-ray-gun: point it at a file, folder or URL; it works out what the thing is, picks the adapter
 // that knows that kind, and writes a report into a case folder. See SKILL.md for the method.
 //
-//   node xray.mjs scan <file|folder|url> [--as <adapter>] [--case <name>] [adapter options]
+//   node xray.mjs scan <file|folder|url> [--as <adapter>] [--case <name | folder>] [adapter options]
+//   node xray.mjs scan --case <name | folder>   scan the target named in that case's 0-frame.md
 //   node xray.mjs adapters            list adapters and what they open
 //   node xray.mjs cases               list case folders
 //
@@ -14,7 +15,7 @@ import { readdirSync, statSync, existsSync, writeFileSync } from 'node:fs';
 import { join, resolve, extname, basename } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { readHead, identify, sha256File, human } from './lib/bytes.mjs';
-import { openCase, newScan, listCases, usage, renderMarkdown, addQuestion, logScan, CASES_ROOT } from './lib/case.mjs';
+import { openCase, caseFolder, readTarget, newScan, listCases, usage, renderMarkdown, logScan, CASES_ROOT } from './lib/case.mjs';
 
 const HERE = fileURLToPath(new URL('.', import.meta.url));
 
@@ -117,14 +118,16 @@ async function main() {
     for (const c of cs) console.log(`${c.name}  (${c.scans.length} scans)  ${join(CASES_ROOT, c.name)}`);
     return;
   }
-  if (cmd !== 'scan' || !pos[1]) {
-    console.log('usage: node xray.mjs scan <file|folder|url> [--as <adapter>] [--case <name>] [--question "<what you want to learn>"]\n       node xray.mjs adapters | cases');
+  // With --case and no target, the target comes from the case's frame, so a pasted command never carries it.
+  const input = pos[1] || (typeof opts.case === 'string' ? readTarget(caseFolder(opts.case)) : null);
+  if (cmd !== 'scan' || !input) {
+    console.log('usage: node xray.mjs scan <file|folder|url> [--as <adapter>] [--case <name | folder>]\n       node xray.mjs scan --case <name | folder>   (target read from the case\'s 0-frame.md)\n       node xray.mjs adapters | cases');
     process.exit(cmd ? 1 : 0);
   }
+  // The question belongs to the brain's frame, where only Brief reads it.
+  if (opts.question !== undefined) console.error('note: --question is ignored here. Give it to brain/next.mjs, which keeps it in 0-frame.md for the Brief step only.');
 
-  const input = pos[1];
-  const caseDir = openCase(opts.case || basename(input.replace(/[\\/]+$/, '')) || input);
-  if (typeof opts.question === 'string') addQuestion(caseDir, opts.question);
+  const caseDir = openCase(typeof opts.case === 'string' ? opts.case : basename(input.replace(/[\\/]+$/, '')) || input);
   const r = await scan(input, opts, adapters, caseDir);
   logScan(caseDir, r);
 

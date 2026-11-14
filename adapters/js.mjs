@@ -2,13 +2,16 @@
 // import map, frameworks, Electron windows / IPC / preload bridges, and source maps (recovered to
 // readable files when they carry their sources).
 
-import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, statSync } from 'node:fs';
-import { join, dirname, basename, normalize, sep } from 'node:path';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
+import { join, dirname, basename } from 'node:path';
 import { walk } from './folder.mjs';
-import { human } from '../lib/bytes.mjs';
+import { human, readRange } from '../lib/bytes.mjs';
+import { extractor } from '../lib/extract.mjs';
 
 const CODE = new Set(['.js', '.mjs', '.cjs', '.jsx', '.ts', '.tsx', '.vue', '.svelte', '.html', '.htm']);
-const PER_FILE = 8 * 1024 * 1024;
+const PER_FILE = 8 * 1024 * 1024;    // code read per file; past this only the first part is scanned
+const MAP_MAX = 64 * 1024 * 1024;    // a source map larger than this is listed, not parsed
+const RECOVER_BUDGET = 200 * 1024 * 1024;   // all recovered sources together
 
 // [name, text pattern, package names]. An import of one of the packages is evidence the code uses
 // the library. The text pattern alone is only a lead: it also matches a name inside a string, a
@@ -24,26 +27,32 @@ const LIBS = [
 
 const lineOf = (src, idx) => src.slice(0, idx).split('\n').length;
 
+// Source names inside a map are the map's claim, so recovered files go through the shared extractor:
+// each name stays inside `dest`, and all of them together share one budget.
 function sourceMaps(files, dest) {
   const maps = files.filter((f) => f.ext === '.map');
-  const recovered = [];
+  const ex = extractor(dest, RECOVER_BUDGET);
+  let tooBig = 0;
   for (const m of maps.slice(0, 200)) {
+    if (m.size > MAP_MAX) { tooBig++; continue; }
     try {
       const j = JSON.parse(readFileSync(m.path, 'utf8'));
-      if (!Array.isArray(j.sourcesContent)) continue;
+      if (!Array.isArray(j.sourcesContent) || !Array.isArray(j.sources)) continue;
       j.sources.forEach((s, i) => {
         const text = j.sourcesContent[i];
         if (typeof text !== 'string') return;
-        const rel = normalize(String(s).replace(/^[a-z]+:\/\/+/i, '').replace(/^(\.\.[\\/])+/, '').replace(/[?#].*$/, '').replace(/[:*?"<>|]/g, '_'));
-        if (!rel || rel === '..' || rel.startsWith(`..${sep}`)) return;
-        const out = join(dest, rel);
-        mkdirSync(dirname(out), { recursive: true });
-        writeFileSync(out, text);
-        recovered.push(rel);
+        const name = String(s).replace(/^[a-z]+:\/\/+/i, '').replace(/^(\.\.[\\/])+/, '').replace(/[?#].*$/, '').replace(/[:*?"<>|]/g, '_');
+        ex.add(name, () => Buffer.from(text, 'utf8'));
       });
     } catch { /* not a usable map */ }
   }
-  return { maps: maps.length, recovered };
+  return { maps: maps.length, recovered: ex.written, skipped: ex.skipped, tooBig };
+}
+
+// The first PER_FILE bytes of a file, read without loading the rest.
+function readCode(f) {
+  if (f.size > PER_FILE) return { src: readRange(f.path, 0, PER_FILE).toString('utf8'), partial: true };
+  return { src: readFileSync(f.path, 'utf8'), partial: false };
 }
 
 export default {
@@ -70,8 +79,7 @@ export default {
 
     for (const f of code) {
       let src;
-      try { src = readFileSync(f.path, 'utf8'); } catch { continue; }
-      if (src.length > PER_FILE) { partial++; src = src.slice(0, PER_FILE); }
+      try { const r = readCode(f); src = r.src; if (r.partial) partial++; } catch { continue; }
       const lines = src.split('\n');
       if (src.length > 5000 && src.length / lines.length > 400) minified++;
 
@@ -117,6 +125,8 @@ export default {
     const sm = sourceMaps(files, join(ctx.filesDir, 'recovered-sources'));
     if (sm.recovered.length) findings.push({ what: `recovered ${sm.recovered.length} original source files from ${sm.maps} source maps`, evidence: 'files/recovered-sources/' });
     else if (sm.maps) guesses.push(`${sm.maps} source maps exist but carry no embedded sources; the original files may be fetchable from the URLs inside them.`);
+    if (sm.skipped.length) unknowns.push(`${sm.skipped.length} sources in the source maps were not recovered: ${sm.skipped.slice(0, 5).join('; ')}`);
+    if (sm.tooBig) unknowns.push(`${sm.tooBig} source maps are over ${human(MAP_MAX)} and were not parsed.`);
 
     if (minified) guesses.push(`${minified} files look minified: names are shortened, so follow strings (UI text, CSS class names, IPC channels, URLs), not variable names.`);
     // Minified code renames ipcMain, BrowserWindow and friends, so a count of zero found by name is no evidence of none.

@@ -1,6 +1,6 @@
 # x-ray-gun 🔫
 
-*By ayakohi and Cygnus. Version 1.0.0.*
+*By ayakohi and Cygnus. Version 1.1.0 ([what changed](CHANGELOG.md)).*
 
 Point it at something that already exists, such as a website, an app, a file or a folder. It shows you how the thing was built, helps you work out why it was built that way, and ends with a build plan for something of your own.
 
@@ -31,7 +31,7 @@ There are two parts, and they stay apart on purpose.
 | **The gun** | Collects. Opens the thing and writes down what is there. | `xray.mjs`, `adapters/`, `lib/` |
 | **The brain** | Reads. Works out the maker's decisions and turns them into your build plan. | `brain/` |
 
-The last step, Brief, sees only the maker's rules written in plain words. It never sees their colours, sizes or code. That wall is what keeps your build yours.
+The last step, Brief, sees only the maker's rules written in plain words. Before Brief runs, the rules are checked for exact sizes, colours, timings and code, and any line that carries one goes back to be rewritten in words. That wall is what keeps your build yours.
 
 ## How it stays honest
 
@@ -39,7 +39,7 @@ A reader who knows the answer it is hoped to find will find it. So the method ke
 
 | Guard | What it does |
 |---|---|
-| **The question waits** | Your question and what you are building are saved at the start, and only the last step opens them. Every step before that studies the thing without knowing what you hope to find. |
+| **The question waits** | Your question and what you are building are saved at the start in one file, and only the last step opens it. No other file in the case repeats them, so every step before that studies the thing without knowing what you hope to find. |
 | **The first look can be wrong** | Survey is a first impression. Watch and Open correct it where what they see differs, and can rename a part it named wrongly. The old name stays on record beside the new one. |
 | **Every explanation keeps its rivals** | Decide writes two or more explanations for each feature, with what supports each and what counts against it. It can also say a feature was nobody's decision: a default, a leftover, or something that grew over time. |
 | **"Cannot tell" is an answer** | When the evidence does not settle a question, the read says so and names what would settle it. |
@@ -100,7 +100,7 @@ The numbers are the reading order. Cases live in `~/.x-ray-gun/cases/`.
 
 ## How sure each line is
 
-Every line a reader writes ends with a tag, so you can tell a fact from a guess at a glance.
+Every line in the notes and the read (Survey, Watch, Open and Decide) ends with a tag, so you can tell a fact from a guess at a glance. Challenge gives each conclusion a verdict instead, and Brief is a plan.
 
 | Tag | Meaning |
 |---|---|
@@ -125,7 +125,7 @@ Both measured runs were on Claude Haiku, before the Challenge step existed; it a
 ## What the gun can open
 
 ```
-node xray.mjs scan <file | folder | url> [--case <name>] [--as <adapter>] [--question "..."]
+node xray.mjs scan <file | folder | url> [--case <name>] [--as <adapter>]
 node xray.mjs adapters      # what it can open, and how often each has been used
 node xray.mjs cases         # past studies
 ```
@@ -146,6 +146,10 @@ node xray.mjs cases         # past studies
 
 The gun is strongest on web pages. It sees one screen size and nothing behind a click or a login. It does not read what compiled code does, and it has no eyes for a picture or a video.
 
+Scanning a page runs that page's own scripts in a real browser on your computer, with your network access, the same as opening it yourself. Scan pages you would open anyway.
+
+Files that come out of an archive stay inside the case folder, and the real unpacked size counts against a budget, so a file that lies about its size is set aside rather than filling your disk.
+
 When it stops, it says so under **Still unknown** and the reader chains to a tool that already exists: a decompiler, a browser someone can click through, the Wayback Machine. What that tool finds goes back into the case folder under `scans/`. The table of tools is in [SKILL.md](SKILL.md).
 
 The gun stays small on purpose. A new adapter is added only after the same kind of thing has come up in three separate cases.
@@ -162,6 +166,7 @@ The gun stays small on purpose. A new adapter is added only after the same kind 
 - The guarded Decide, Challenge and Brief steps then ran once on the same notes. Challenge weakened two conclusions, marked three "cannot tell", and found seven claims with no evidence under them.
 - The guarded Survey, Watch and Open steps have not been run yet.
 - The web, code-folder, folder, database and zip adapters each pass a small check. The Electron, Windows-program, network-capture and fallback adapters have not been rechecked since they were first built. In real studies so far, only the web adapter has been used.
+- Version 1.1.0 was checked against hostile files: a zip that lies about its size, an asar whose names point outside its folder or past its end, a folder holding a link back to itself, and a source map with escaping names. Each was set aside. The same checks fail on 1.0.0.
 - Not tested yet: a study paused for days, a target that is not a web page, and a comparison of build plans against what a person would write.
 
 ## Only examine what you own or are allowed to
@@ -172,4 +177,8 @@ x-ray-gun is for learning, interoperability, and things you have the right to in
 
 x-ray-gun is written by **ayakohi** and **Cygnus**.
 
-Method and spirit adapted from [REA](https://github.com/morluto/rea) (MIT). Independent reimplementation, not affiliated. MIT licensed — see [LICENSE](LICENSE).
+Method and spirit adapted from [REA](https://github.com/morluto/rea) (MIT). Independent reimplementation, not affiliated.
+
+## License
+
+[PolyForm Strict 1.0.0](LICENSE). You may use x-ray-gun for any noncommercial purpose. You may not share copies of it, publish changed versions, or build new works on it. For anything else, ask ayakohi.

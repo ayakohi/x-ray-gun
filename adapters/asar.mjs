@@ -3,13 +3,15 @@
 
 import { readRange, human } from '../lib/bytes.mjs';
 import { brief } from '../lib/case.mjs';
-import { mkdirSync, writeFileSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { extractor } from '../lib/extract.mjs';
+import { join } from 'node:path';
 
-function readHeader(path) {
+// Every length in the header is the archive's claim, so each one is checked against the real file size.
+function readHeader(path, size) {
   const pre = readRange(path, 0, 16);
   const headerSize = pre.readUInt32LE(4);          // pickle 1: size of pickle 2
   const jsonLen = pre.readUInt32LE(12);            // pickle 2: string length
+  if (8 + headerSize > size || 16 + jsonLen > 8 + headerSize) throw new Error(`header claims ${headerSize} bytes in a ${size}-byte file (damaged or not an asar)`);
   const json = readRange(path, 16, jsonLen).toString('utf8');
   return { header: JSON.parse(json), base: 8 + headerSize };
 }
@@ -32,21 +34,24 @@ export default {
     try { return t.head.readUInt32LE(0) === 4 && t.head.subarray(16, 26).toString().startsWith('{"files"') ? 90 : 0; } catch { return 0; }
   },
   async run(t, ctx) {
-    const { header, base } = readHeader(t.path);
+    const { header, base } = readHeader(t.path, t.size);
     const all = flatten(header);
     const dest = join(ctx.filesDir, 'extracted');
-    let written = 0;
+    const ex = extractor(dest);
     const unknowns = [];
     for (const f of all) {
       if (f.unpacked || f.link || f.offset === null) continue;
-      const out = join(dest, ...f.path.split('/'));
-      if (!out.startsWith(dest)) continue;
-      mkdirSync(dirname(out), { recursive: true });
-      writeFileSync(out, readRange(t.path, base + f.offset, f.size));
-      written++;
+      ex.add(f.path, (left) => {
+        const start = base + f.offset;
+        if (!Number.isSafeInteger(start) || !Number.isSafeInteger(f.size) || f.offset < 0 || f.size < 0 || start + f.size > t.size) throw new Error('outside the archive');
+        if (f.size > left) throw new Error('over size budget');
+        return readRange(t.path, start, f.size);
+      });
     }
+    const written = ex.written.length;
     const unpacked = all.filter((f) => f.unpacked);
     if (unpacked.length) unknowns.push(`${unpacked.length} files live outside the archive in app.asar.unpacked/ next to it (often native .node modules). Scan that folder too.`);
+    if (ex.skipped.length) unknowns.push(`${ex.skipped.length} files not extracted: ${ex.skipped.slice(0, 5).join('; ')}`);
 
     const pkg = all.find((f) => f.path === 'package.json');
     const children = [brief(await ctx.handoff(dest, 'js'))];

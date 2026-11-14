@@ -19,10 +19,19 @@ const FLAVOURS = [
   ['Python wheel', (n) => [...n].some((x) => /\.dist-info\/WHEEL$/.test(x))],
 ];
 
+const ZIP_STARTS = ['504b0304', '504b0506', '504b0708'].map((h) => Buffer.from(h, 'hex'));
+const ZIP_EXTS = new Set(['.zip', '.apk', '.jar', '.msix', '.appx', '.docx', '.xlsx', '.pptx', '.xpi', '.ipa', '.whl', '.nupkg', '.aab']);
+
 export default {
   name: 'zip',
   about: 'zip and its family (apk, jar, msix, docx, xpi, ipa, whl...): list, name the flavour, extract',
-  detect: (t) => (t.kind === 'file' && t.head?.subarray(0, 4).equals(Buffer.from('504b0304', 'hex')) ? 90 : 0),
+  // A zip can start with a file record, an empty-archive record, or a spanning marker. A zip-family
+  // extension alone is a weaker claim; listZip then looks for the record at the end of the file.
+  detect(t) {
+    if (t.kind !== 'file') return 0;
+    if (ZIP_STARTS.some((sig) => t.head?.subarray(0, 4).equals(sig))) return 90;
+    return ZIP_EXTS.has(t.ext) ? 50 : 0;
+  },
   async run(t, ctx) {
     const { entries } = listZip(t.path);
     const names = new Set(entries.map((e) => e.name));

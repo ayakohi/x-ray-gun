@@ -33,7 +33,7 @@ Watch and Open can run at the same time. Challenge and Brief each run in a fresh
 
 ## How it stays honest
 
-- **The question waits.** The person's question and destination sit in `0-frame.md`, and only Brief opens it. Every step before that studies the thing without knowing what anyone hopes to find.
+- **The question waits.** The person's question and destination sit in `0-frame.md`, and only Brief opens it. `NEXT.md` names the case and the target and leaves the question out until the read is complete, and the gun's notebook holds scans only. Every step before Brief studies the thing without knowing what anyone hopes to find.
 - **The survey is a first impression.** Watch and Open correct it where what they see differs, and rename any part it named wrongly. The old name stays in the glossary beside the new one.
 - **Every decision keeps its rivals.** Decide writes two or more explanations for each feature, with what supports each and what counts against it. "The notes cannot settle this" is a full answer.
 - **A second reader tries to break the read.** Challenge argues against each conclusion, checks it against the notes, and writes rules only from what survives.
@@ -52,7 +52,7 @@ Watch and Open can run at the same time. Challenge and Brief each run in a fresh
   5-challenge.md each conclusion tested: stands, weakened, or cannot tell
   6-rules.md     the rules that survived, in words only
   7-brief.md     the basket and the build order
-  notebook.md    the gun's log of scans
+  notebook.md    the gun's log of scans, one line each
   scans/         one folder per scan, from the gun or an outside tool
   scripts/       one-off scripts written for this case
 ```

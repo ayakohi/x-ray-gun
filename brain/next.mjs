@@ -7,13 +7,12 @@
 // The first run needs the question and the destination. Everything after that is read from the folder.
 
 import { existsSync, readFileSync, writeFileSync, appendFileSync, readdirSync, mkdirSync, statSync } from 'node:fs';
-import { join, isAbsolute, basename } from 'node:path';
-import { homedir } from 'node:os';
+import { join, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { caseFolder, writeFrame, readFrame } from '../lib/case.mjs';
 
 const HERE = fileURLToPath(new URL('.', import.meta.url));
 const GUN = join(HERE, '..', 'xray.mjs');
-const CASES_ROOT = process.env.XRAY_CASES || join(homedir(), '.x-ray-gun', 'cases');
 
 // The sequence. A step is done when its output files exist, and ready when the files it needs exist.
 const STEPS = [
@@ -81,16 +80,25 @@ function mergeNames(dir) {
 }
 
 // The rules file is the wall between the study and the rebuild: it carries words, never exact values.
+// This catches the common forms (sizes, timings, angles, colours, code spans). Font names and other
+// words that are exact values in disguise still rely on the Challenge reader writing in plain words.
+const EXACT = [
+  /\d+(\.\d+)?\s?(px|rem|em|ms|s|vh|vw|vmin|vmax|pt|deg|fr)\b/i,
+  /\d+(\.\d+)?\s?%/,
+  /\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(/i,
+  /#(?:[0-9a-f]{8}|[0-9a-f]{6}|[0-9a-f]{3,4})\b/i,
+  /`[^`]+`/,
+];
 function valuesIn(dir) {
   const p = join(dir, '6-rules.md');
   if (!existsSync(p)) return [];
-  return readFileSync(p, 'utf8').split('\n').map((l, i) => [i + 1, l]).filter(([, l]) => /\d+(\.\d+)?\s?(px|rem|em|ms|%)|\brgba?\(|#[0-9a-f]{6}\b/i.test(l)).map(([n]) => n);
+  return readFileSync(p, 'utf8').split('\n').map((l, i) => [i + 1, l]).filter(([, l]) => EXACT.some((re) => re.test(l))).map(([n]) => n);
 }
 
 function main() {
   const { pos, opts } = args(process.argv.slice(2));
   if (!pos[0]) { console.log('usage: node next.mjs <case name | case folder> [--target <file|folder|url>] [--question "..."] [--destination "..."]'); process.exit(1); }
-  const dir = isAbsolute(pos[0]) ? pos[0] : join(CASES_ROOT, pos[0]);
+  const dir = caseFolder(pos[0]);
   mkdirSync(dir, { recursive: true });
   const name = basename(dir);
   const has = (f) => existsSync(join(dir, f));
@@ -100,26 +108,28 @@ function main() {
   // Step 0: the frame, in the person's own words.
   if (!has('0-frame.md')) {
     if (opts.question && opts.destination) {
-      writeFileSync(join(dir, '0-frame.md'), `# Frame\n\n- **Target:** ${opts.target || '(not given)'}\n- **Question:** ${opts.question}\n- **Destination:** ${opts.destination}\n`);
+      writeFrame(dir, { target: opts.target, question: opts.question, destination: opts.destination });
     } else {
       L.push('# Next: Frame', '', 'Ask the person two things, then run this again with their answers:', '', '1. What do you want to learn from this thing?', '2. What are you building yourself?', '', '```', `${self} --target "<file, folder or address>" --question "<their answer 1>" --destination "<their answer 2>"`, '```');
       return finish(dir, L);
     }
   }
-  const frame = readFileSync(join(dir, '0-frame.md'), 'utf8');
-  const field = (k) => (frame.match(new RegExp(`\\*\\*${k}:\\*\\*\\s*(.+)`)) || [])[1] || '';
+  const frame = readFrame(dir);
   const list = scans(dir);
   mergeNames(dir);
 
   const done = [`- [x] Frame — 0-frame.md`];
   if (list.length) done.push(`- [x] Scan — ${list.length} in scans/`);
   for (const s of STEPS) if (s.out.every(has)) done.push(`- [x] ${s.name} — ${s.out.join(', ')}`);
-  const head = (title) => L.push(`# Next: ${title}`, '', `Case **${name}** · Question: ${field('Question')} · Destination: ${field('Destination')}`, '', '## Done', ...done, '');
+  // Every step reads this header, so it names the case and the target only. The question and the
+  // destination appear once the read is complete; until then Brief alone opens 0-frame.md.
+  const head = (title, { withFrame = false } = {}) => L.push(`# Next: ${title}`, '',
+    `Case **${name}** · Target: ${frame.target}${withFrame ? ` · Question: ${frame.question} · Destination: ${frame.destination}` : ''}`, '', '## Done', ...done, '');
 
-  // Collect the material before any reading starts.
+  // Collect the material before any reading starts. The gun reads the target from 0-frame.md itself.
   if (!list.length) {
     head('Scan');
-    L.push('## Now', '', 'Collect the material. Run the gun on the target:', '', '```', `node "${GUN}" scan "${field('Target')}" --case "${name}"`, '```', '',
+    L.push('## Now', '', 'Collect the material. Run the gun on the target:', '', '```', `node "${GUN}" scan --case "${dir}"`, '```', '',
       'When the gun cannot open this kind of thing (a picture, a video, a compiled program), follow "When the gun runs out" in the gun\'s SKILL.md and save what the outside tool gives you in `scans/<date>-<tool>/` with a `report.md`.', '', '## Then', '', '```', self, '```');
     return finish(dir, L);
   }
@@ -134,7 +144,7 @@ function main() {
   }
 
   if (!ready.length) {
-    head('Done');
+    head('Done', { withFrame: true });
     L.push('## The read is complete', '', 'Read in this order: 0-frame.md, 1-survey.md, 4-read.md, 5-challenge.md, 6-rules.md, 7-brief.md.', '',
       '**To rebuild:** open 7-brief.md from inside your own project folder and follow its build order. Build there, and keep this folder as the study.', '',
       '**To go deeper on one part:** the "Out of reach" lists in 1-survey.md and 3-build.md, and each "Check next" line in 4-read.md, name the tool that would show it. Save what that tool gives you in `scans/<date>-<tool>/`, add its findings to 2-behaviour.md or 3-build.md, move 4-read.md, 5-challenge.md, 6-rules.md and 7-brief.md into a folder named `earlier/`, and run this again for a new Decide.');
