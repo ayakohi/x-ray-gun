@@ -5,7 +5,7 @@ The gun reports how a thing was built. The brain reads why it was built that way
 ## Run it
 
 ```
-node <skill>/brain/next.mjs <case> --target <file|folder|url> --question "<what the person wants to learn>" --destination "<what the person is building>"
+node <skill>/brain/next.mjs <case> --target <file|folder|url> --question "<what the person wants to learn>" --destination "<what the person is building>" [--keep close|numbers|words]
 ```
 
 That writes `NEXT.md` in the case folder. From then on the whole method is one loop:
@@ -27,7 +27,7 @@ That writes `NEXT.md` in the case folder. From then on the whole method is one l
 | Open | the survey's Open list | `3-build.md` |
 | Decide | the survey and both sets of notes | `4-read.md` |
 | Challenge | both sets of notes and the read, with fresh eyes | `5-challenge.md`, `6-rules.md` |
-| Brief | the frame and the rules, nothing else | `7-brief.md` |
+| Brief | the frame and the rules, plus the build notes and scan reports as far as Keep allows | `7-brief.md` |
 
 Watch and Open can run at the same time. Challenge and Brief each run in a fresh conversation or with a helper.
 
@@ -38,12 +38,22 @@ Watch and Open can run at the same time. Challenge and Brief each run in a fresh
 - **Every decision keeps its rivals.** Decide writes two or more explanations for each feature, with what supports each and what counts against it. "The notes cannot settle this" is a full answer.
 - **A second reader tries to break the read.** Challenge argues against each conclusion, checks it against the notes, and writes rules only from what survives.
 
+## How much of the look the plan keeps
+
+The rules always reach Brief in words. The look travels beside them, set by `--keep` and saved in `0-frame.md`:
+
+- **close** (the default): Brief also reads `3-build.md` and the scan reports, and sets down each treatment's full measured style.
+- **numbers**: Brief also reads `3-build.md`, and sets down each treatment in words with the two or three values that make it.
+- **words**: Brief reads the frame and the rules alone.
+
+Run `next.mjs <case> --keep <setting>` to change it at any point before Brief. The two look instructions live in `stations/look/`.
+
 ## The case folder
 
 ```
 <case>/
   NEXT.md        the pointer: what is done, and the step to do now
-  0-frame.md     the question and the destination
+  0-frame.md     the question, the destination, and the Keep setting
   1-survey.md    kind, shape, and who reads what
   glossary.md    this case's names for its parts
   2-behaviour.md what it does
@@ -51,7 +61,7 @@ Watch and Open can run at the same time. Challenge and Brief each run in a fresh
   4-read.md      where it steers, features with rival explanations, the maker
   5-challenge.md each conclusion tested: stands, weakened, or cannot tell
   6-rules.md     the rules that survived, in words only
-  7-brief.md     the basket and the build order
+  7-brief.md     the basket, the look, and the build order
   notebook.md    the gun's log of scans, one line each
   scans/         one folder per scan, from the gun or an outside tool
   scripts/       one-off scripts written for this case

@@ -4,7 +4,7 @@
 
 Point it at something that already exists, such as a website, an app, a file or a folder. It shows you how the thing was built, helps you work out why it was built that way, and ends with a build plan for something of your own.
 
-It is a skill for Claude Code. The output is understanding. It never hands you a copy.
+It is a skill for Claude Code. The output is understanding, plus a build plan that keeps as much of the measured look as you ask for.
 
 ## How it works
 
@@ -31,7 +31,15 @@ There are two parts, and they stay apart on purpose.
 | **The gun** | Collects. Opens the thing and writes down what is there. | `xray.mjs`, `adapters/`, `lib/` |
 | **The brain** | Reads. Works out the maker's decisions and turns them into your build plan. | `brain/` |
 
-The last step, Brief, sees only the maker's rules written in plain words. Before Brief runs, the rules are checked for exact sizes, colours, timings and code, and any line that carries one goes back to be rewritten in words. That wall is what keeps your build yours.
+The maker's rules reach the last step, Brief, in plain words. Before Brief runs, the rules are checked for exact sizes, colours, timings and code, and any line that carries one goes back to be rewritten in words. So a rule is always a choice you can make your own.
+
+The look travels beside the rules, and you set how much of it comes along when you start a study:
+
+| `--keep` | The build plan carries |
+|---|---|
+| `close` (the default) | each treatment's full measured style, as the scan read it |
+| `numbers` | each treatment in words, with the two or three values that make it |
+| `words` | the rules alone |
 
 ## How it stays honest
 
@@ -70,12 +78,12 @@ Every study is one **case folder**. Each step reads a few files from it and writ
 | 3 · Open | Writes down what the thing is made of, with exact values | `3-build.md` |
 | 4 · Decide | Picks the five features that shaped it most and weighs rival explanations for each | `4-read.md` |
 | 5 · Challenge | A fresh reader tries to prove each conclusion wrong, then writes the rules that survive | `5-challenge.md`, `6-rules.md` |
-| 6 · Brief | Opens your frame, sorts the rules for your project, writes your build order | `7-brief.md` |
+| 6 · Brief | Opens your frame, sorts the rules for your project, sets down the look as far as `--keep` allows, writes your build order | `7-brief.md` |
 
 One small script keeps the place. It looks at the folder and writes `NEXT.md`: what is done, and the full instructions for the step to do now.
 
 ```
-node brain/next.mjs <case> --target <file|folder|url> --question "<what you want to learn>" --destination "<what you are building>"
+node brain/next.mjs <case> --target <file|folder|url> --question "<what you want to learn>" --destination "<what you are building>" [--keep close|numbers|words]
 ```
 
 After that the whole method is a loop: open `NEXT.md`, do the step, run the command at the bottom.
@@ -93,7 +101,7 @@ After that the whole method is a loop: open `NEXT.md`, do the step, run the comm
   4-read.md        the key features, each with rival explanations
   5-challenge.md   each conclusion tested: stands, weakened, cannot tell
   6-rules.md       the rules that survived, in words only
-  7-brief.md       your basket and build order
+  7-brief.md       your basket, the look, and build order
   notebook.md      the gun's log of scans
   scans/           one folder per scan
 ```
@@ -169,6 +177,7 @@ The gun stays small on purpose. A new adapter is added only after the same kind 
 - The guarded Survey, Watch and Open steps have not been run yet.
 - The web, code-folder, folder, database and zip adapters each pass a small check. The Electron, Windows-program, network-capture and fallback adapters have not been rechecked since they were first built. In real studies so far, only the web adapter has been used.
 - Version 1.1.0 was checked against hostile files: a zip that lies about its size, an asar whose names point outside its folder or past its end, a folder holding a link back to itself, and a source map with escaping names. Each was set aside. The same checks fail on 1.0.0.
+- The three `--keep` settings were each run once on one web page, on Claude Haiku, from the same notes. `close` came nearest the original, and `words` carried nothing of the look.
 - The browser finder knows the usual macOS and Linux paths, and they have not been run on a Mac or on Linux yet.
 - Not tested yet: a study paused for days, a target that is not a web page, and a comparison of build plans against what a person would write.
 

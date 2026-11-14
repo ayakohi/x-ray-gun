@@ -1,0 +1,1 @@
+**The look, in key numbers** — pick the five to eight treatments in 3-build.md that carry the look and the motion. Write one line each: the treatment in words, then the two or three measured values that make it. eg. "The main button: a dark fill split on a diagonal, with a thin dark border. Split at 60%, border 2px."

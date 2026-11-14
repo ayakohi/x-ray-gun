@@ -2,14 +2,16 @@
 // The pointer. Looks at which files a case folder holds, works out the next step of the read, and
 // writes it to NEXT.md in that folder (and prints it). Run it again after every step.
 //
-//   node next.mjs <case name | case folder> [--target <file|folder|url>] [--question "..."] [--destination "..."]
+//   node next.mjs <case name | case folder> [--target <file|folder|url>] [--question "..."] [--destination "..."] [--keep close|numbers|words]
 //
 // The first run needs the question and the destination. Everything after that is read from the folder.
+// --keep sets how much of the measured look the build plan carries (default: close). It can be changed
+// on any later run, up to the Brief step.
 
 import { existsSync, readFileSync, writeFileSync, appendFileSync, readdirSync, mkdirSync, statSync } from 'node:fs';
 import { join, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { caseFolder, writeFrame, readFrame } from '../lib/case.mjs';
+import { caseFolder, writeFrame, readFrame, KEEPS } from '../lib/case.mjs';
 
 const HERE = fileURLToPath(new URL('.', import.meta.url));
 const GUN = join(HERE, '..', 'xray.mjs');
@@ -22,7 +24,7 @@ const STEPS = [
   { name: 'Open', station: '3-open.md', out: ['3-build.md'], needs: ['1-survey.md', 'glossary.md'] },
   { name: 'Decide', station: '4-decide.md', out: ['4-read.md'], needs: ['2-behaviour.md', '3-build.md'] },
   { name: 'Challenge', station: '5-challenge.md', out: ['5-challenge.md', '6-rules.md'], needs: ['4-read.md'], alone: 'It tests the read, so it needs a reader who did not write it.' },
-  { name: 'Brief', station: '6-brief.md', out: ['7-brief.md'], needs: ['6-rules.md'], alone: 'It works from two files alone, and a reader who has seen the earlier notes will carry them in.' },
+  { name: 'Brief', station: '6-brief.md', out: ['7-brief.md'], needs: ['6-rules.md'], alone: 'It works from the few files it names, and a reader who has seen the earlier notes will carry them in.' },
 ];
 
 function args(argv) {
@@ -79,6 +81,16 @@ function mergeNames(dir) {
   }
 }
 
+// The look's own lane into the build plan. The rules stay in words; measured values travel here, as
+// far as the frame's Keep setting allows: nothing (words), the build notes (numbers), or the build
+// notes and the scan reports (close).
+function look(keep, list) {
+  if (keep === 'words') return { materials: '', part: '' };
+  const m = ["- {case}/3-build.md — what the maker's thing is made of, with measured values."];
+  if (keep === 'close') for (const s of list) if (s.report) m.push(`- ${s.report} — a scan report, with the measured style of each effect.`);
+  return { materials: m.join('\n'), part: readFileSync(join(HERE, 'stations', 'look', `${keep}.md`), 'utf8').trim() };
+}
+
 // The rules file is the wall between the study and the rebuild: it carries words, never exact values.
 // This catches the common forms (sizes, timings, angles, colours, code spans). Font names and other
 // words that are exact values in disguise still rely on the Challenge reader writing in plain words.
@@ -97,7 +109,8 @@ function valuesIn(dir) {
 
 function main() {
   const { pos, opts } = args(process.argv.slice(2));
-  if (!pos[0]) { console.log('usage: node next.mjs <case name | case folder> [--target <file|folder|url>] [--question "..."] [--destination "..."]'); process.exit(1); }
+  if (!pos[0]) { console.log('usage: node next.mjs <case name | case folder> [--target <file|folder|url>] [--question "..."] [--destination "..."] [--keep close|numbers|words]'); process.exit(1); }
+  if (opts.keep !== undefined && !KEEPS.includes(opts.keep)) { console.log(`--keep takes one of: ${KEEPS.join(', ')}`); process.exit(1); }
   const dir = caseFolder(pos[0]);
   mkdirSync(dir, { recursive: true });
   const name = basename(dir);
@@ -108,13 +121,15 @@ function main() {
   // Step 0: the frame, in the person's own words.
   if (!has('0-frame.md')) {
     if (opts.question && opts.destination) {
-      writeFrame(dir, { target: opts.target, question: opts.question, destination: opts.destination });
+      writeFrame(dir, { target: opts.target, question: opts.question, destination: opts.destination, keep: opts.keep });
     } else {
       L.push('# Next: Frame', '', 'Ask the person two things, then run this again with their answers:', '', '1. What do you want to learn from this thing?', '2. What are you building yourself?', '', '```', `${self} --target "<file, folder or address>" --question "<their answer 1>" --destination "<their answer 2>"`, '```');
       return finish(dir, L);
     }
   }
-  const frame = readFrame(dir);
+  let frame = readFrame(dir);
+  // The Keep setting can be changed on a later run; the rest of the frame stays as the person gave it.
+  if (opts.keep && opts.keep !== frame.keep) { writeFrame(dir, { ...frame, keep: opts.keep }); frame = readFrame(dir); }
   const list = scans(dir);
   mergeNames(dir);
 
@@ -124,7 +139,7 @@ function main() {
   // Every step reads this header, so it names the case and the target only. The question and the
   // destination appear once the read is complete; until then Brief alone opens 0-frame.md.
   const head = (title, { withFrame = false } = {}) => L.push(`# Next: ${title}`, '',
-    `Case **${name}** · Target: ${frame.target}${withFrame ? ` · Question: ${frame.question} · Destination: ${frame.destination}` : ''}`, '', '## Done', ...done, '');
+    `Case **${name}** · Target: ${frame.target}${withFrame ? ` · Question: ${frame.question} · Destination: ${frame.destination} · Keep: ${frame.keep}` : ''}`, '', '## Done', ...done, '');
 
   // Collect the material before any reading starts. The gun reads the target from 0-frame.md itself.
   if (!list.length) {
@@ -154,7 +169,10 @@ function main() {
   head(ready.map((s) => s.name).join(' and '));
   if (ready.length > 1) L.push(`${ready.length} steps are ready. Two helpers can take one each at the same time. A lone reader does them in the order shown.`, '');
   for (const s of ready) {
-    const prompt = readFileSync(join(HERE, 'stations', s.station), 'utf8').trim().replaceAll('{case}', dir).replace('{materials}', surveyMaterials(list));
+    const lk = s.name === 'Brief' ? look(frame.keep, list) : { materials: '', part: '' };
+    const prompt = readFileSync(join(HERE, 'stations', s.station), 'utf8').trim()
+      .replace('{look materials}', () => lk.materials).replace('{look}', () => lk.part).replace('{materials}', () => surveyMaterials(list))
+      .replaceAll('{case}', dir).replace(/\n{3,}/g, '\n\n');
     L.push(`## Now: ${s.name}`, '');
     if (s.alone) L.push(`Do this step in a fresh conversation, or hand it to a helper. ${s.alone}`, '');
     L.push('Follow these instructions exactly:', '', '---', '', prompt, '', '---', '');

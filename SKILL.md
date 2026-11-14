@@ -18,9 +18,11 @@ Every request to use, test or try x-ray-gun on a target is a **study**, and a st
 1. **Ask the user two questions** when their message leaves either one open: "What do you want to learn from this?" and "What are you building yourself?" Write "general study" as the destination when they are building nothing.
 2. **Start the sequence:**
    ```
-   node <skill>/brain/next.mjs <case name> --target <file|folder|url> --question "<their first answer>" --destination "<their second answer>"
+   node <skill>/brain/next.mjs <case name> --target <file|folder|url> --question "<their first answer>" --destination "<their second answer>" [--keep close|numbers|words]
    ```
 3. **Follow the loop.** Open `NEXT.md` in the case folder, do the step under **Now**, run the command under **Then**, and repeat until `NEXT.md` says **Done**. The first step it gives you is the scan. [brain/BRAIN.md](brain/BRAIN.md) explains the sequence.
+
+`--keep` sets how much of the measured look the build plan carries: `close` (the default) carries each treatment's full measured style, `numbers` carries the few values that make each look, `words` carries the rules alone. Use the default unless the user asks for less.
 
 Tell the user the rough cost before you begin: a full study is several steps and, in tests, 150,000 to 350,000 tokens on a small model.
 
@@ -44,7 +46,7 @@ When the gun stops, follow **When the gun runs out** below.
 
 ## The point in one line
 
-See how something was made → study the evidence → build your own version. Observe, don't pirate: the output is understanding, not a copy.
+See how something was made → study the evidence → build your own version, as close to the original's look as the user asks. The rules are always understanding, written in words. The look comes along as far as `--keep` allows.
 
 ## The gun's commands
 
