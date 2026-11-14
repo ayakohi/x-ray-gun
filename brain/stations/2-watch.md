@@ -6,7 +6,7 @@ Read these two first, in one step:
 
 Then open every path listed under **Watch reads** in 1-survey.md, in one step, with the Read calls sent together.
 
-Write one file: {case}/2-behaviour.md, with four lists. Use plain words and short sentences. Call each part by its glossary name.
+Write one file: {case}/2-behaviour.md, with five lists. Use plain words and short sentences. Call each part by its glossary name.
 
 **Behaviour** — what a person meets, from start to end. One line per section or stage: what it is, what stands out in it, and where it sits. Then one line for each thing that repeats, and one line for each thing that appears only once. eg. "The basket stays in view on every screen. [Seen: frames 2 to 9]"
 

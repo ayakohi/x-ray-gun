@@ -1,5 +1,13 @@
 # What changed
 
+## Unreleased
+
+- The web adapter looks for Chrome, Chromium or Edge in the usual places on macOS and Linux as well as Windows, then on PATH. On Windows it also finds a per-user Chrome install. Not yet run on a Mac or on Linux.
+- When the browser runs as root, it starts with its sandbox off and the report says so.
+- HAR: a possible secret is listed under Findings by parameter name and address. Its value is never written.
+- Watch and Open say "five lists", matching the five they name.
+- The Windows-program and zip adapters point to outside tools and no longer mention adapters that were never built.
+
 ## 1.1.0 — 14 November 2026
 
 **The question stays hidden until Brief.**

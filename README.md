@@ -47,7 +47,9 @@ A reader who knows the answer it is hoped to find will find it. So the method ke
 
 ## Set it up
 
-You need [Claude Code](https://claude.com/claude-code), Node 22.5 or newer, and Chrome or Edge for scanning web pages. Nothing else is installed.
+You need [Claude Code](https://claude.com/claude-code), Node 22.5 or newer, and Chrome, Chromium or Edge for scanning web pages. Nothing else is installed.
+
+The gun looks for the browser in its usual place on Windows, macOS and Linux. When yours lives somewhere else, set `XRAY_BROWSER` to its full path. So far it has been run on Windows only.
 
 ```
 git clone https://github.com/ayakohi/x-ray-gun ~/.claude/skills/x-ray-gun
@@ -167,6 +169,7 @@ The gun stays small on purpose. A new adapter is added only after the same kind 
 - The guarded Survey, Watch and Open steps have not been run yet.
 - The web, code-folder, folder, database and zip adapters each pass a small check. The Electron, Windows-program, network-capture and fallback adapters have not been rechecked since they were first built. In real studies so far, only the web adapter has been used.
 - Version 1.1.0 was checked against hostile files: a zip that lies about its size, an asar whose names point outside its folder or past its end, a folder holding a link back to itself, and a source map with escaping names. Each was set aside. The same checks fail on 1.0.0.
+- The browser finder knows the usual macOS and Linux paths, and they have not been run on a Mac or on Linux yet.
 - Not tested yet: a study paused for days, a target that is not a web page, and a comparison of build plans against what a person would write.
 
 ## Only examine what you own or are allowed to

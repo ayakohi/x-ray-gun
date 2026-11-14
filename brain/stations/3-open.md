@@ -6,7 +6,7 @@ Read these two first, in one step:
 
 Then open every path listed under **Open reads** in 1-survey.md, in full, in one step.
 
-Write one file: {case}/3-build.md, with four lists. Use plain words and short sentences. Call each part by its glossary name.
+Write one file: {case}/3-build.md, with five lists. Use plain words and short sentences. Call each part by its glossary name.
 
 **Build** — what it is made of: the tools and materials, the parts, and each distinct treatment with its exact values and the number of places that use it. eg. "Six cards share one look: a 2px grey border and 8px corners. [Seen: report lines 30 to 34]"
 

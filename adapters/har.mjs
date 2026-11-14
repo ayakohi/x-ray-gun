@@ -27,21 +27,22 @@ export default {
       if (/json|graphql/.test(mime) || /\/api\/|\/graphql/.test(url)) apis.push({ what: `${e.request.method} ${url.slice(0, 140)} → ${e.response?.status} (${mime})`, evidence: `${human(e.response?.content?.size || 0)}` });
       const hay = url + ' ' + (e.request?.headers || []).map((h) => `${h.name}=${h.value}`).join(' ');
       const m = hay.match(SECRET);
-      if (m) secrets.push({ what: `possible ${m[1]} in the clear: ${m[2].slice(0, 12)}…`, evidence: url.slice(0, 80) });
+      // Names which parameter and where. The value itself is never written.
+      if (m) secrets.push({ what: `possible ${m[1].toLowerCase()} sent in the clear`, evidence: url.split(/[?#]/)[0].slice(0, 80) });
     }
 
     const hosts = Object.entries(byHost).sort((a, b) => b[1] - a[1]);
+    // One line per parameter and place, however many requests repeat it.
+    const seenSecrets = [...new Map(secrets.map((s) => [s.what + s.evidence, s])).values()];
     return {
       kind: 'network capture (HAR)',
       summary: `${entries.length} requests across ${hosts.length} hosts. ${apis.length} look like API calls.`,
       facts: { requests: entries.length, hosts: hosts.length, apiCalls: apis.length },
-      findings: [...apis.slice(0, 40)],
-      guesses: secrets.length ? ['Secrets below are pattern matches, not proof — many are short-lived or public keys. Treat them as leads, and never paste a real one anywhere.'] : [],
+      findings: [...apis.slice(0, 40), ...seenSecrets.slice(0, 20)],
+      guesses: seenSecrets.length ? ['The "sent in the clear" lines under Findings are pattern matches, not proof — many are short-lived or public keys. Treat them as leads, and never paste a real one anywhere.'] : [],
       unknowns: ['A HAR is one recorded session. It shows what was called, not the server\'s full API. Response bodies are only present if the capture saved them.'],
       next: ['Replay an API call yourself to see its full response shape.'],
       inventory: hosts.slice(0, 40).map(([h, n]) => `${h}  ×${n}`),
-      // secrets go in the json report but not the loud summary
-      ...(secrets.length ? { secretsSeen: secrets } : {}),
     };
   },
 };

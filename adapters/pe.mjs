@@ -1,6 +1,6 @@
 // Windows programs and libraries (.exe, .dll, .node). Reads only the file's own headers: how it was
 // built and what it was built from. It does not interpret the program's instructions; turning machine
-// code into readable code is a decompiler's job (Ghidra adapter — not built yet).
+// code into readable code is a decompiler's job (see "When the gun runs out" in SKILL.md).
 
 import { readRange, strings, human } from '../lib/bytes.mjs';
 
@@ -59,10 +59,10 @@ export default {
 
     const guesses = [];
     if (built.includes('Electron / Chromium')) guesses.push('This is an Electron app. Its real code is JavaScript in a resources/app.asar next to the .exe — scan that with the asar adapter, not this one.');
-    if (built.includes('.NET')) guesses.push('A .NET program: its code is bytecode that tools like ILSpy decompile cleanly back to C#. A .NET adapter would do this; not built yet.');
+    if (built.includes('.NET')) guesses.push('A .NET program: its code is bytecode that tools like ILSpy decompile cleanly back to C#.');
     if (built.includes('installer')) guesses.push('This is an installer wrapper, not the app. Run it (in a safe place) or extract it to get the real files inside.');
 
-    unknowns.push('What the machine code does is not read here. For native programs that genuinely need it, run the real REA once (`npx -y rea-agents@latest`) with Ghidra, or add a Ghidra adapter to this gun.');
+    unknowns.push('What the machine code does is not read here. For native programs that genuinely need it, run the real REA once (`npx -y rea-agents@latest`) with Ghidra.');
 
     return {
       kind: 'Windows program / library (PE)',

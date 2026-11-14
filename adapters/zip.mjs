@@ -46,7 +46,7 @@ export default {
     for (const e of notable.slice(0, 25)) findings.push({ what: `${e.name} (${human(e.usize)})`, evidence: 'zip member' });
 
     const unknowns = [];
-    if (flavour.startsWith('Android')) unknowns.push('AndroidManifest.xml and resources are compiled binary XML, and classes.dex is Dalvik bytecode. Readable Java needs JADX (free, needs Java); not built into this gun yet.');
+    if (flavour.startsWith('Android')) unknowns.push('AndroidManifest.xml and resources are compiled binary XML, and classes.dex is Dalvik bytecode. Readable Java needs JADX (free, needs Java).');
     if (ex.skipped.length) unknowns.push(`${ex.skipped.length} members not extracted: ${ex.skipped.slice(0, 5).join('; ')}`);
 
     const children = [];

@@ -65,7 +65,7 @@ node xray.mjs scan ./mystery.bin
 
 It prints a trimmed report and the path to the full one. Everything lands in a **case folder** (default `~/.x-ray-gun/cases/<name>/`): a `notebook.md` that logs one line per scan, and inside `scans/` one dated folder per scan holding `report.md`, `report.json`, and any files pulled out.
 
-Needs only Node 22.5 or newer and, for the `web` adapter, Chrome or Edge (set `XRAY_BROWSER` to override the path). Nothing to install.
+Needs only Node 22.5 or newer and, for the `web` adapter, Chrome, Chromium or Edge. The gun finds it in its usual place on Windows, macOS and Linux; set `XRAY_BROWSER` to the browser's full path to override. Run so far on Windows only. Nothing to install.
 
 ## Reading a scan report (do this, in order)
 
